@@ -1,0 +1,31 @@
+use std::str::FromStr;
+use crate::ast::{Expr, Opcode};
+
+grammar;
+
+Tier<Op, NextTier>: Box<Expr> = {
+    Tier<Op, NextTier> Op NextTier => Box::new(Expr::Op(<>)),
+    NextTier,
+};
+
+pub Expr = Tier<ExprOp, Factor>;
+Factor = Tier<FactorOp, Term>;
+
+ExprOp: Opcode = {
+    "+" => Opcode::Add,
+    "-" => Opcode::Sub,
+};
+
+FactorOp: Opcode = {
+    "*" => Opcode::Mul,
+    "/" => Opcode::Div,
+};
+
+Term: Box<Expr> = {
+    Num => Box::new(Expr::Number(<>)),
+    "(" <Expr> ")"
+};
+
+Num: i32 = {
+    r"[0-9]+" => i32::from_str(<>).unwrap()
+}
