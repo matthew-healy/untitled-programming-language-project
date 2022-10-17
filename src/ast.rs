@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 
+#[derive(PartialEq)]
 pub enum Expr {
     Number(i32),
     Op(Box<Expr>, Opcode, Box<Expr>),
@@ -14,6 +15,13 @@ impl Debug for Expr {
     }
 }
 
+impl Into<Expr> for i32 {
+    fn into(self) -> Expr {
+        Expr::Number(self)
+    }
+}
+
+#[derive(PartialEq)]
 pub enum Opcode {
     Mul,
     Div,
