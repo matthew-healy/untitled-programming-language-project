@@ -6,7 +6,7 @@ mod types;
 lalrpop_mod!(parser);
 
 fn main() {
-    println!("solo version 0.1.0");
+    println!("untitled programming language project, version 0.1.0");
 
     let input = "99 + 105 * 22 / 4";
 

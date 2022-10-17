@@ -1,3 +1,7 @@
-# solo
+# untitled programming language project
 
-A small language for computers and humans. Name not final.
+A small language for computers and humans.
+
+## Features
+
+- Does nothing, fast.
