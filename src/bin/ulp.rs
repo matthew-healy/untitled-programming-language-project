@@ -1,9 +1,5 @@
-use lalrpop_util::lalrpop_mod;
-
-mod ast;
-mod types;
-
-lalrpop_mod!(parser);
+use untitled_programming_language_project::parser;
+use untitled_programming_language_project::types;
 
 fn main() {
     println!("untitled programming language project, version 0.1.0");

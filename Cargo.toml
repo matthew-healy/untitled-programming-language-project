@@ -3,6 +3,12 @@ name = "untitled-programming-language-project"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "ulp"
+path = "src/bin/ulp.rs"
+
+[lib]
+
 [build-dependencies]
 lalrpop = "0.19.8"
 
