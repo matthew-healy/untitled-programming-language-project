@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "ulp"
-path = "src/bin/ulp.rs"
+name = "uplp"
+path = "src/bin/uplp.rs"
 
 [lib]
 
