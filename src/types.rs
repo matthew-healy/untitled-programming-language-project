@@ -3,19 +3,9 @@ use std::fmt::Debug;
 use crate::ast::Expr;
 use crate::error::TypeError;
 
+#[derive(Debug, PartialEq)]
 pub enum Type {
     Num,
-}
-
-impl Debug for Type {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use Type::*;
-
-        let desc = match self {
-            Num => "Num",
-        };
-        write!(f, "{}", desc)
-    }
 }
 
 pub(crate) struct TypeChecker;

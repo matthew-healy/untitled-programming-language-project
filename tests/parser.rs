@@ -2,7 +2,7 @@ use rand::Rng;
 use untitled_programming_language_project::{ast, parse};
 
 #[test]
-fn number_literal() {
+fn number_literals() {
     let mut rng = rand::thread_rng();
 
     let mut ns = [0; 128];
@@ -86,10 +86,11 @@ where
     ast::Expr::Op(Box::new(l.into()), op, Box::new(r.into()))
 }
 
-
 fn parse_successfully<'input>(input: &'input str) -> ast::Expr {
-    match parse(input) {
-        Ok(expr) => expr,
-        Err(e) => panic!("unexpected parse failure.\ninput: {}\nerror: {:?}", input, e),
-    }
+    parse(input).unwrap_or_else(|e| {
+        panic!(
+            "unexpected parse failure.\ninput: {}\nerror: {:?}",
+            input, e
+        )
+    })
 }
