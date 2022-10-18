@@ -3,7 +3,10 @@ use lalrpop_util::{self, lalrpop_mod};
 pub mod ast;
 pub mod error;
 pub mod types;
-lalrpop_mod!(#[allow(clippy::all)] parser);
+lalrpop_mod!(
+    #[allow(clippy::all)]
+    parser
+);
 
 pub fn parse(input: &str) -> Result<ast::Expr, error::Error> {
     let parser = parser::ExprParser::new();
