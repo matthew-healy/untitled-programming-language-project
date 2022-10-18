@@ -1,23 +1,7 @@
 use std::fmt::Debug;
 
 use crate::ast::Expr;
-
-pub enum Error {
-    Mismatch,
-}
-
-// TODO: Display
-impl Debug for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use Error::*;
-
-        let desc = match self {
-            Mismatch => "Type mismatch",
-        };
-
-        write!(f, "[Error] {}", desc)
-    }
-}
+use crate::error::TypeError;
 
 pub enum Type {
     Num,
@@ -41,7 +25,7 @@ impl TypeChecker {
         TypeChecker
     }
 
-    pub fn check(&self, e: Expr) -> Result<Type, Error> {
+    pub fn check(&self, e: Expr) -> Result<Type, TypeError> {
         use Expr::*;
 
         match e {
@@ -51,7 +35,7 @@ impl TypeChecker {
                 let r_ty = self.check(*r)?;
                 match (l_ty, r_ty) {
                     (Type::Num, Type::Num) => Ok(Type::Num),
-                    _ => Err(Error::Mismatch),
+                    _ => Err(TypeError::Mismatch),
                 }
             }
         }
