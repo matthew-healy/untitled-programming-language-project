@@ -16,6 +16,7 @@ path = "src/bin/uplp.rs"
 lalrpop = "0.19.8"
 
 [dependencies]
+clap = { version = "4.0.17", features = ["derive"] }
 lalrpop-util = { version = "0.19.8", features = ["lexer"] }
 
 [dev-dependencies]
