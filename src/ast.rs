@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum Expr {
     Number(i32),
     Op(Box<Expr>, Opcode, Box<Expr>),
@@ -21,7 +21,7 @@ impl From<i32> for Expr {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum Opcode {
     Mul,
     Div,

@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use crate::ast::Expr;
 use crate::error::TypeError;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Type {
     Num,
 }
