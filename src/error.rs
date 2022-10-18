@@ -65,7 +65,7 @@ impl<'src> From<LalrpopError<'src>> for ParseError {
                 token: Tok::Raw(tok.to_string()),
                 expected: vec![],
             },
-            User { error } => unreachable!(),
+            User { .. } => unreachable!(),
         }
     }
 }
