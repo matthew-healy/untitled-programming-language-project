@@ -18,14 +18,14 @@ impl Debug for Type {
     }
 }
 
-pub struct TypeChecker;
+pub(crate) struct TypeChecker;
 
 impl TypeChecker {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         TypeChecker
     }
 
-    pub fn check(&self, e: Expr) -> Result<Type, TypeError> {
+    pub(crate) fn check(&self, e: Expr) -> Result<Type, TypeError> {
         use Expr::*;
 
         match e {

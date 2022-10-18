@@ -1,5 +1,5 @@
 use rand::Rng;
-use untitled_programming_language_project::{ast, parser};
+use untitled_programming_language_project::{ast, parse};
 
 #[test]
 fn number_literal() {
@@ -8,12 +8,10 @@ fn number_literal() {
     let mut ns = [0; 128];
     rng.fill(&mut ns);
 
-    let parser = parser::ExprParser::new();
-
     for n in ns {
         let input = format!("{}", n);
-        let expr = parser.parse_successfully(input.as_str());
-        assert_eq!(ast::Expr::Number(n), *expr)
+        let expr = parse_successfully(input.as_str());
+        assert_eq!(ast::Expr::Number(n), expr)
     }
 }
 
@@ -21,24 +19,20 @@ fn number_literal() {
 fn binary_ops() {
     use ast::*;
 
-    let parser = parser::ExprParser::new();
-
     for (name, input, expected) in [
         ("addition", "1 + 1", mk_op(1, Opcode::Add, 1)),
         ("subtraction", "99 - 4", mk_op(99, Opcode::Sub, 4)),
         ("multiplication", "-3 * -914", mk_op(-3, Opcode::Mul, -914)),
         ("division", "4444 / 1111", mk_op(4444, Opcode::Div, 1111)),
     ] {
-        let actual = parser.parse_successfully(input);
-        assert_eq!(expected, *actual, "{}", name)
+        let actual = parse_successfully(input);
+        assert_eq!(expected, actual, "{}", name)
     }
 }
 
 #[test]
 fn operator_precedence() {
     use ast::{self, Opcode::*};
-
-    let parser = parser::ExprParser::new();
 
     for (name, input, expected) in [
         ("+ then +", "1 + 2 + 3", mk_op(mk_op(1, Add, 2), Add, 3)),
@@ -78,8 +72,8 @@ fn operator_precedence() {
             mk_op(mk_op(2, Div, 4), Mul, mk_op(1, Div, 3)),
         ),
     ] {
-        let expr = parser.parse_successfully(input);
-        assert_eq!(expected, *expr, "{}", name)
+        let expr = parse_successfully(input);
+        assert_eq!(expected, expr, "{}", name)
     }
 }
 
@@ -92,17 +86,10 @@ where
     ast::Expr::Op(Box::new(l.into()), op, Box::new(r.into()))
 }
 
-/// wrap the lalrpop generated `ExprParser` so we don't need to
-/// handle the `Err` case every time.
-trait ParseSuccessfully {
-    fn parse_successfully<'input>(&self, input: &'input str) -> Box<ast::Expr>;
-}
 
-impl ParseSuccessfully for parser::ExprParser {
-    fn parse_successfully<'input>(&self, input: &'input str) -> Box<ast::Expr> {
-        match self.parse(input) {
-            Ok(expr) => expr,
-            Err(e) => panic!("unexpected parse failure.\ninput: {}\nerror: {}", input, e),
-        }
+fn parse_successfully<'input>(input: &'input str) -> ast::Expr {
+    match parse(input) {
+        Ok(expr) => expr,
+        Err(e) => panic!("unexpected parse failure.\ninput: {}\nerror: {:?}", input, e),
     }
 }

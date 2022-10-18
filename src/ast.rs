@@ -15,9 +15,9 @@ impl Debug for Expr {
     }
 }
 
-impl Into<Expr> for i32 {
-    fn into(self) -> Expr {
-        Expr::Number(self)
+impl From<i32> for Expr {
+    fn from(n: i32) -> Expr {
+        Expr::Number(n)
     }
 }
 
