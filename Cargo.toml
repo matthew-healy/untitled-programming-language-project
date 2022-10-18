@@ -1,7 +1,10 @@
 [package]
 name = "untitled-programming-language-project"
+description = "A small language for computers & humans"
 version = "0.1.0"
 edition = "2021"
+readme = "README.md"
+repository = "https://github.com/matthew-healy/untitled-programming-language-project"
 
 [[bin]]
 name = "uplp"
