@@ -75,8 +75,8 @@ fn operator_precedence() {
         (
             "parens can force precedence",
             "2 / 4 * (1 / 3)",
-            mk_op(mk_op(2, Div, 4), Mul, mk_op(1, Div, 3))
-        )
+            mk_op(mk_op(2, Div, 4), Mul, mk_op(1, Div, 3)),
+        ),
     ] {
         let expr = parser.parse_successfully(input);
         assert_eq!(expected, *expr, "{}", name)
