@@ -1,7 +1,12 @@
-use std::{fmt::Debug, fs::File, io::{self, Read}, path::PathBuf};
+use std::{
+    fmt::Debug,
+    fs::File,
+    io::{self, Read},
+    path::PathBuf,
+};
 
 use clap::{Parser, Subcommand};
-use untitled_programming_language_project::{check_types, error, parse};
+use untitled_programming_language_project::{check_types, error, evaluate, parse};
 
 fn main() {
     let cli = Cli::parse();
@@ -10,6 +15,10 @@ fn main() {
         Commands::AstDump { file } => {
             let expr = with_source_file(file, parse);
             handle_result(expr)
+        }
+        Commands::Evaluate { file } => {
+            let val = with_source_file(file, evaluate);
+            handle_result(val)
         }
         Commands::TypeCheck { file } => {
             let ty = with_source_file(file, check_types);
@@ -70,6 +79,11 @@ enum Commands {
     /// Dump the AST of a uplp expression
     AstDump {
         /// The uplp source file to dump
+        #[arg(short, long, value_name = "FILE")]
+        file: PathBuf,
+    },
+    /// Evaluate a uplp source file
+    Evaluate {
         #[arg(short, long, value_name = "FILE")]
         file: PathBuf,
     },
