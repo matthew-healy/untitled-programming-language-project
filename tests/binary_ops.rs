@@ -1,22 +1,10 @@
-use rand::Rng;
-use untitled_programming_language_project::{ast, parse};
+use untitled_programming_language_project::{ast, types::Type};
+
+pub mod common;
+use common::{mk_op, parse_successfully, typecheck_successfully};
 
 #[test]
-fn number_literals() {
-    let mut rng = rand::thread_rng();
-
-    let mut ns = [0; 128];
-    rng.fill(&mut ns);
-
-    for n in ns {
-        let input = format!("{}", n);
-        let expr = parse_successfully(input.as_str());
-        assert_eq!(ast::Expr::Number(n), expr)
-    }
-}
-
-#[test]
-fn binary_ops() {
+fn parsing() {
     use ast::*;
 
     for (name, input, expected) in [
@@ -31,7 +19,7 @@ fn binary_ops() {
 }
 
 #[test]
-fn operator_precedence() {
+fn precedence() {
     use ast::{self, Opcode::*};
 
     for (name, input, expected) in [
@@ -77,20 +65,15 @@ fn operator_precedence() {
     }
 }
 
-/// make a binary op from two expressions.
-fn mk_op<L, R>(l: L, op: ast::Opcode, r: R) -> ast::Expr
-where
-    L: Into<ast::Expr>,
-    R: Into<ast::Expr>,
-{
-    ast::Expr::Op(Box::new(l.into()), op, Box::new(r.into()))
-}
-
-fn parse_successfully<'input>(input: &'input str) -> ast::Expr {
-    parse(input).unwrap_or_else(|e| {
-        panic!(
-            "unexpected parse failure.\ninput: {}\nerror: {:?}",
-            input, e
-        )
-    })
+#[test]
+fn typechecking() {
+    for (name, input, expected) in [
+        ("addition", "1 + 1", Type::Num),
+        ("subtraction", "99 - 4", Type::Num),
+        ("multiplication", "-3 * -914", Type::Num),
+        ("division", "4444 / 1111", Type::Num),
+    ] {
+        let actual = typecheck_successfully(input);
+        assert_eq!(expected, actual, "{}", name)
+    }  
 }
