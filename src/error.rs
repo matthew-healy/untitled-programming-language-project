@@ -1,15 +1,16 @@
 use crate::parser::Token;
 use lalrpop_util;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Error {
     ParseError(ParseError),
     TypeError(TypeError),
+    EvaluationError(EvaluationError),
 }
 
 // Parse errors
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ParseError {
     InvalidToken {
         location: usize,
@@ -25,7 +26,7 @@ pub enum ParseError {
     },
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Tok {
     EndOfFile,
     Raw(String),
@@ -72,7 +73,7 @@ impl<'src> From<LalrpopError<'src>> for ParseError {
 
 // Type Errors
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TypeError {
     Mismatch,
 }
@@ -80,5 +81,18 @@ pub enum TypeError {
 impl From<TypeError> for Error {
     fn from(e: TypeError) -> Self {
         Error::TypeError(e)
+    }
+}
+
+// Evaluation Errors
+
+#[derive(Debug, PartialEq)]
+pub enum EvaluationError {
+    DivisionByZero,
+}
+
+impl From<EvaluationError> for Error {
+    fn from(e: EvaluationError) -> Self {
+        Error::EvaluationError(e)
     }
 }

@@ -1,4 +1,10 @@
-use untitled_programming_language_project::{ast, types::Type};
+use untitled_programming_language_project::{
+    ast,
+    error::{Error, EvaluationError},
+    evaluate,
+    types::Type,
+    values::Val,
+};
 
 pub mod common;
 use common::{mk_op, parse_successfully, typecheck_successfully};
@@ -75,5 +81,27 @@ fn typechecking() {
     ] {
         let actual = typecheck_successfully(input);
         assert_eq!(expected, actual, "{}", name)
-    }  
+    }
+}
+
+#[test]
+fn evaluation() {
+    for (name, input, expected) in [
+        ("simple addition", "1 + 1", Ok(Val::Num(2))),
+        ("neg addition", "-9 + -44", Ok(Val::Num(-53))),
+        ("simple subtraction", "5 - 3", Ok(Val::Num(2))),
+        ("neg subtraction", "-24 - -4", Ok(Val::Num(-20))),
+        ("simple multiplication", "33 * 3", Ok(Val::Num(99))),
+        ("neg multiplication", "-44 * -4", Ok(Val::Num(176))),
+        ("simple divion", "4 / 2", Ok(Val::Num(2))),
+        ("negative divion", "-99 / -3", Ok(Val::Num(33))),
+        (
+            "division by zero",
+            "0 / 0",
+            Err(Error::EvaluationError(EvaluationError::DivisionByZero)),
+        ),
+    ] {
+        let actual = evaluate(input);
+        assert_eq!(expected, actual, "{}", name)
+    }
 }

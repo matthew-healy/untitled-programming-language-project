@@ -1,6 +1,11 @@
-use untitled_programming_language_project::{ast, check_types, parse, types::Type};
+use untitled_programming_language_project::{
+    ast::{Expr, Opcode},
+    check_types, evaluate, parse,
+    types::Type,
+    values::Val,
+};
 
-pub fn parse_successfully<'input>(input: &'input str) -> ast::Expr {
+pub fn parse_successfully<'input>(input: &'input str) -> Expr {
     parse(input).unwrap_or_else(|e| {
         panic!(
             "unexpected parse failure.\ninput: {}\nerror: {:?}",
@@ -10,15 +15,28 @@ pub fn parse_successfully<'input>(input: &'input str) -> ast::Expr {
 }
 
 pub fn typecheck_successfully<'input>(input: &'input str) -> Type {
-    check_types(input)
-        .unwrap_or_else(|e| panic!("unexpected failure.\ninput: {}\nerror: {:?}", input, e))
+    check_types(input).unwrap_or_else(|e| {
+        panic!(
+            "unexpected typecheck failure.\ninput: {}\nerror: {:?}",
+            input, e
+        )
+    })
+}
+
+pub fn evaluate_successfully<'input>(input: &'input str) -> Val {
+    evaluate(input).unwrap_or_else(|e| {
+        panic!(
+            "unexpected evaluation failure.\ninput: {}\nerror: {:?}",
+            input, e
+        )
+    })
 }
 
 /// make a binary op from two expressions.
-pub fn mk_op<L, R>(l: L, op: ast::Opcode, r: R) -> ast::Expr
+pub fn mk_op<L, R>(l: L, op: Opcode, r: R) -> Expr
 where
-    L: Into<ast::Expr>,
-    R: Into<ast::Expr>,
+    L: Into<Expr>,
+    R: Into<Expr>,
 {
-    ast::Expr::Op(Box::new(l.into()), op, Box::new(r.into()))
+    Expr::Op(Box::new(l.into()), op, Box::new(r.into()))
 }
