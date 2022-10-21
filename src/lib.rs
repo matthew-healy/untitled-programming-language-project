@@ -11,10 +11,10 @@ lalrpop_mod!(
     parser
 );
 
-pub fn parse(input: &str) -> Result<ast::Expr, error::Error> {
+pub fn parse(input: &str) -> Result<Box<ast::Expr>, error::Error> {
     let parser = parser::ExprParser::new();
     let expr = parser.parse(input)?;
-    Ok(*expr)
+    Ok(expr)
 }
 
 pub fn check_types(input: &str) -> Result<types::Type, error::Error> {
@@ -31,8 +31,11 @@ pub fn evaluate(input: &str) -> Result<values::Val, error::Error> {
     let expr = parse(input)?;
     let _ = typechecker.check(&expr)?;
 
-    let vm = vm::VirtualMachine::new();
+    let compiler = vm::Compiler::new();
+    let stack = compiler.compile(&expr);
 
-    let val = vm.evaluate(expr)?;
+    let mut vm = vm::VirtualMachine::new(stack);
+
+    let val = vm.evaluate()?;
     Ok(val)
 }

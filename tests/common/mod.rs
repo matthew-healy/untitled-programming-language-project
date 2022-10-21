@@ -6,7 +6,7 @@ use untitled_programming_language_project::{
 };
 
 pub fn parse_successfully<'input>(input: &'input str) -> Expr {
-    parse(input).unwrap_or_else(|e| {
+    *parse(input).unwrap_or_else(|e| {
         panic!(
             "unexpected parse failure.\ninput: {}\nerror: {:?}",
             input, e
