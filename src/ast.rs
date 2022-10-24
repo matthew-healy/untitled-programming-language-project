@@ -4,6 +4,7 @@ use std::fmt::Debug;
 pub enum Expr {
     Number(i32),
     Op(Box<Expr>, Opcode, Box<Expr>),
+    Unit,
 }
 
 impl Debug for Expr {
@@ -11,12 +12,13 @@ impl Debug for Expr {
         match self {
             Expr::Number(n) => write!(f, "{}", n),
             Expr::Op(l, op, r) => write!(f, "({:?} {:?} {:?})", l, op, r),
+            Expr::Unit => write!(f, "()"),
         }
     }
 }
 
 impl From<i32> for Expr {
-    fn from(n: i32) -> Expr {
+    fn from(n: i32) -> Self {
         Expr::Number(n)
     }
 }

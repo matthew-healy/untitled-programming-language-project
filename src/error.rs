@@ -89,6 +89,7 @@ impl From<TypeError> for Error {
 #[derive(Debug, PartialEq)]
 pub enum EvaluationError {
     DivisionByZero,
+    Internal(String),
 }
 
 impl From<EvaluationError> for Error {

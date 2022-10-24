@@ -23,6 +23,7 @@ FactorOp: Opcode = {
 
 Term: Box<Expr> = {
     Num => Box::new(Expr::Number(<>)),
+    "()" => Box::new(Expr::Unit),
     "(" <Expr> ")"
 };
 

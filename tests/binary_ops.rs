@@ -1,6 +1,6 @@
 use untitled_programming_language_project::{
-    ast,
-    error::{Error, EvaluationError},
+    ast, check_types,
+    error::{Error, EvaluationError, TypeError},
     evaluate,
     types::Type,
     values::Val,
@@ -81,6 +81,17 @@ fn typechecking() {
     ] {
         let actual = typecheck_successfully(input);
         assert_eq!(expected, actual, "{}", name)
+    }
+}
+
+#[test]
+fn typechecking_fail() {
+    for (name, input, expected) in [
+        ("non-Num rhs", "1 + ()", TypeError::Mismatch),
+        ("non-Num lhs", "() / 9", TypeError::Mismatch),
+    ] {
+        let actual = check_types(input);
+        assert_eq!(Err(Error::TypeError(expected)), actual, "{}", name)
     }
 }
 

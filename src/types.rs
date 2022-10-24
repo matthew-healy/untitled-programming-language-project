@@ -6,6 +6,7 @@ use crate::error::TypeError;
 #[derive(Debug, PartialEq, Eq)]
 pub enum Type {
     Num,
+    Unit,
 }
 
 pub(crate) struct TypeChecker;
@@ -28,6 +29,7 @@ impl TypeChecker {
                     _ => Err(TypeError::Mismatch),
                 }
             }
+            Unit => Ok(Type::Unit),
         }
     }
 }

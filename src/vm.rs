@@ -15,8 +15,8 @@ impl VirtualMachine {
         match expr {
             Expr::Number(n) => Ok(Val::Num(n)),
             Expr::Op(l, op, r) => {
-                let Val::Num(l) = self.evaluate(*l)?;
-                let Val::Num(r) = self.evaluate(*r)?;
+                let l = self.evaluate_num(*l)?;
+                let r = self.evaluate_num(*r)?;
                 match op {
                     Opcode::Add => Ok(Val::Num(l + r)),
                     Opcode::Sub => Ok(Val::Num(l - r)),
@@ -25,6 +25,17 @@ impl VirtualMachine {
                     Opcode::Div => Ok(Val::Num(l / r)),
                 }
             }
+            Expr::Unit => Ok(Val::Unit),
         }
+    }
+
+    fn evaluate_num(&self, e: Expr) -> Result<i32, EvaluationError> {
+        self.evaluate(e).and_then(|e| match e {
+            Val::Num(n) => Ok(n),
+            v => Err(EvaluationError::Internal(format!(
+                "Expected Num but found {:?}",
+                v
+            ))),
+        })
     }
 }
