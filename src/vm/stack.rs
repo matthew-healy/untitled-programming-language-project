@@ -51,7 +51,7 @@ mod stack_axioms {
         fn pop_after_push_leaves_stack_unchanged(s: Stack<usize>) -> bool {
             let before = s.clone();
             let mut s = s;
-            s.push(rand::random());
+            s.push(0);
             s.pop();
             s == before
         }

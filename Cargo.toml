@@ -20,5 +20,4 @@ clap = { version = "4.0.17", features = ["derive"] }
 lalrpop-util = { version = "0.19.8", features = ["lexer"] }
 
 [dev-dependencies]
-rand = "0.8.5"
 quickcheck = "1.0.3"
