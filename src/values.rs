@@ -1,6 +1,6 @@
 use crate::error::EvaluationError;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Val {
     Num(i32),
     Unit,

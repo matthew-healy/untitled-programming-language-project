@@ -1,5 +1,5 @@
-use untitled_programming_language_project::{ast::Expr, types::Type, values::Val};
 use quickcheck::quickcheck;
+use untitled_programming_language_project::{ast::Expr, types::Type, values::Val};
 
 pub mod common;
 use common::{evaluate_successfully, parse_successfully, typecheck_successfully};

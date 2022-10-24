@@ -1,4 +1,10 @@
-use crate::{ast::Opcode, error::EvaluationError, values::Val};
+use std::collections::HashMap;
+
+use crate::{
+    ast::{Ident, Opcode},
+    error::EvaluationError,
+    values::Val,
+};
 
 mod compiler;
 mod stack;
@@ -9,13 +15,15 @@ use compiler::Op;
 
 pub struct VirtualMachine {
     code: Vec<Op>,
+    env: HashMap<Ident, Val>,
     stack: Stack<Val>,
 }
 
 impl VirtualMachine {
     pub fn new(code: Vec<Op>) -> Self {
+        let env = HashMap::new();
         let stack = Stack::new();
-        VirtualMachine { code, stack }
+        VirtualMachine { code, env, stack }
     }
 
     pub fn evaluate(&mut self) -> Result<Val, EvaluationError> {
@@ -41,6 +49,20 @@ impl VirtualMachine {
 
                     self.stack.push(Val::Num(res));
                 }
+                Op::Access(i) => {
+                    let v = self.env.get(&i).ok_or(EvaluationError::Internal(format!(
+                        "Attempt to access unbound variable {:?}",
+                        i
+                    )))?;
+                    self.stack.push(v.clone());
+                }
+                Op::Let(i) => {
+                    let v = self.stack.force_pop()?;
+                    self.env.insert(i, v);
+                }
+                Op::EndLet(i) => {
+                    self.env.remove(&i);
+                }
             }
         }
 
@@ -55,9 +77,18 @@ impl VirtualMachine {
 }
 
 impl Stack<Val> {
-    fn force_pop_num(&mut self) -> Result<i32, EvaluationError> {
+    fn force_pop(&mut self) -> Result<Val, EvaluationError> {
         match self.pop() {
-            Some(Val::Num(n)) => Ok(n),
+            Some(v) => Ok(v),
+            None => Err(EvaluationError::Internal(String::from(
+                "Attempt to pop from empty stack",
+            ))),
+        }
+    }
+
+    fn force_pop_num(&mut self) -> Result<i32, EvaluationError> {
+        match self.force_pop()? {
+            Val::Num(n) => Ok(n),
             v => Err(EvaluationError::Internal(format!(
                 "Expected Num but got {:?}",
                 v

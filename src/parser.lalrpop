@@ -1,14 +1,19 @@
 use std::str::FromStr;
-use crate::ast::{Expr, Opcode};
+use crate::ast::{Expr, Ident, Opcode};
 
 grammar;
+
+pub Expr: Box<Expr> = {
+    "let" <Ident> "=" <Expr> "in" <Expr> => Box::new(Expr::Let(<>)),
+    BinaryOpExpr,
+}
 
 Tier<Op, NextTier>: Box<Expr> = {
     Tier<Op, NextTier> Op NextTier => Box::new(Expr::Op(<>)),
     NextTier,
 };
 
-pub Expr = Tier<ExprOp, Factor>;
+BinaryOpExpr = Tier<ExprOp, Factor>;
 Factor = Tier<FactorOp, Term>;
 
 ExprOp: Opcode = {
@@ -24,8 +29,13 @@ FactorOp: Opcode = {
 Term: Box<Expr> = {
     Num => Box::new(Expr::Number(<>)),
     "()" => Box::new(Expr::Unit),
+    <Ident> => Box::new(Expr::Var(<>)),
     "(" <Expr> ")"
 };
+
+Ident: Ident = {
+    r"_?[a-zA-Z][a-zA-Z0-9_-]*" => <>.into()
+}
 
 Num: i32 = {
     r"-?[0-9]+" => i32::from_str(<>).unwrap()
