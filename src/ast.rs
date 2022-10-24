@@ -23,7 +23,7 @@ impl From<i32> for Expr {
     }
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum Opcode {
     Mul,
     Div,
