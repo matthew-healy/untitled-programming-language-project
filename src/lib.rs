@@ -18,7 +18,7 @@ pub fn parse(input: &str) -> Result<Box<ast::Expr>, error::Error> {
 }
 
 pub fn check_types(input: &str) -> Result<types::Type, error::Error> {
-    let typechecker = types::TypeChecker::new();
+    let mut typechecker = types::TypeChecker::new();
 
     let expr = parse(input)?;
     let typ = typechecker.check(&expr)?;
@@ -26,7 +26,7 @@ pub fn check_types(input: &str) -> Result<types::Type, error::Error> {
 }
 
 pub fn evaluate(input: &str) -> Result<values::Val, error::Error> {
-    let typechecker = types::TypeChecker::new();
+    let mut typechecker = types::TypeChecker::new();
 
     let expr = parse(input)?;
     let _ = typechecker.check(&expr)?;

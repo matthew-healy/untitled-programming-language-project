@@ -1,4 +1,4 @@
-use crate::parser::Token;
+use crate::{ast::Ident, parser::Token};
 use lalrpop_util;
 
 #[derive(Debug, PartialEq)]
@@ -76,6 +76,7 @@ impl<'src> From<LalrpopError<'src>> for ParseError {
 #[derive(Debug, PartialEq)]
 pub enum TypeError {
     Mismatch,
+    UnboundIdent(Ident),
 }
 
 impl From<TypeError> for Error {
