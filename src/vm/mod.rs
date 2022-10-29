@@ -1,27 +1,31 @@
-use std::collections::HashMap;
+// use std::collections::HashMap;
 
-use crate::{
-    ast::{Ident, Opcode},
-    error::EvaluationError,
-    values::Val,
-};
+use crate::{ast::Opcode, error::EvaluationError, values::Val, env::Env};
 
 mod compiler;
 mod stack;
 
 use self::stack::Stack;
 pub use compiler::Compiler;
-use compiler::Op;
+
+/// operations run by the vm.
+pub enum Op {
+    Access(usize),
+    Binary(Opcode),
+    Const(Val),
+    Let(),
+    EndLet(),
+}
 
 pub struct VirtualMachine {
     code: Vec<Op>,
-    env: HashMap<Ident, Val>,
+    env: Env<Val>,
     stack: Stack<Val>,
 }
 
 impl VirtualMachine {
     pub fn new(code: Vec<Op>) -> Self {
-        let env = HashMap::new();
+        let env = Env::new();
         let stack = Stack::new();
         VirtualMachine { code, env, stack }
     }
@@ -30,6 +34,7 @@ impl VirtualMachine {
         while let Some(o) = self.code.pop() {
             match o {
                 Op::Const(v) => self.stack.push(v),
+                // Strict binary operators
                 Op::Binary(op) => {
                     let r = self.stack.force_pop_num()?;
                     let l = self.stack.force_pop_num()?;
@@ -50,18 +55,19 @@ impl VirtualMachine {
                     self.stack.push(Val::Num(res));
                 }
                 Op::Access(i) => {
-                    let v = self.env.get(&i).ok_or(EvaluationError::Internal(format!(
+                    let v = self.env.lookup(i).ok_or(EvaluationError::Internal(format!(
+                        // TODO: recover original variable name
                         "Attempt to access unbound variable {:?}",
                         i
                     )))?;
-                    self.stack.push(v.clone());
+                    self.stack.push(*v);
                 }
-                Op::Let(i) => {
+                Op::Let() => {
                     let v = self.stack.force_pop()?;
-                    self.env.insert(i, v);
+                    self.env.bind(v);
                 }
-                Op::EndLet(i) => {
-                    self.env.remove(&i);
+                Op::EndLet() => {
+                    self.env.unbind();
                 }
             }
         }

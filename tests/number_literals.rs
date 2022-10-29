@@ -1,5 +1,5 @@
 use quickcheck::quickcheck;
-use untitled_programming_language_project::{ast::Expr, types::Type, values::Val};
+use untitled_programming_language_project::{ast::RawExpr, types::Type, values::Val};
 
 pub mod common;
 use common::{evaluate_successfully, parse_successfully, typecheck_successfully};
@@ -8,7 +8,7 @@ quickcheck! {
     fn parsing(n: i32) -> bool {
         let input = format!("{}", n);
         let expr = parse_successfully(input.as_str());
-        Expr::Number(n) == expr
+        RawExpr::Literal(Val::Num(n)) == expr
     }
 }
 

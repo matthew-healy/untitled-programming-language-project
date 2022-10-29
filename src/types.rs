@@ -1,8 +1,10 @@
-use std::collections::HashMap;
 use std::fmt::Debug;
 
-use crate::ast::{Expr, Ident};
+use crate::ast::Expr;
+use crate::env::Env;
 use crate::error::TypeError;
+use crate::values::Val;
+
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Type {
@@ -11,12 +13,12 @@ pub enum Type {
 }
 
 pub(crate) struct TypeChecker {
-    typing_env: HashMap<Ident, Type>,
+    typing_env: Env<Type>,
 }
 
 impl TypeChecker {
     pub(crate) fn new() -> Self {
-        let typing_env = HashMap::new();
+        let typing_env = Env::new();
         TypeChecker { typing_env }
     }
 
@@ -24,12 +26,13 @@ impl TypeChecker {
         use Expr::*;
 
         match e {
-            Let(i, binding, body) => {
+            Let(binding, body) => {
                 let binding_ty = self.check(binding)?;
-                self.typing_env.insert(i.clone(), binding_ty);
+                self.typing_env.bind(binding_ty);
                 self.check(body)
             }
-            Number(_) => Ok(Type::Num),
+            Literal(Val::Num(_)) => Ok(Type::Num),
+            Literal(Val::Unit) => Ok(Type::Unit),
             Op(l, _, r) => {
                 let l_ty = self.check(l)?;
                 let r_ty = self.check(r)?;
@@ -38,12 +41,11 @@ impl TypeChecker {
                     _ => Err(TypeError::Mismatch),
                 }
             }
-            Unit => Ok(Type::Unit),
-            Var(i) => self
+            Var(i) => Ok(self
                 .typing_env
-                .get(i)
-                .ok_or(TypeError::UnboundIdent(i.clone()))
-                .map(|t| t.clone()),
+                .lookup(*i)
+                .expect("Scope check should happen before typechecking")
+                .clone()),
         }
     }
 }
