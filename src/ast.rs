@@ -1,40 +1,60 @@
 use std::fmt::Debug;
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub struct Ident {
-    s: String,
+use crate::values::Val;
+
+#[derive(PartialEq, Eq)]
+pub enum RawExpr {
+    Let(RawIdent, Box<RawExpr>, Box<RawExpr>),
+    Literal(Val),
+    Var(RawIdent),
+    Op(Box<RawExpr>, Opcode, Box<RawExpr>)
 }
 
-impl<'a> From<&'a str> for Ident {
-    fn from(s: &'a str) -> Self {
-        Ident { s: s.into() }
+
+impl Debug for RawExpr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            RawExpr::Let(i, bnd, body) => write!(f, "let {:?} = {:?} in {:?}", i, bnd, body),
+            RawExpr::Literal(v) => write!(f, "{}", v),
+            RawExpr::Op(l, op, r) => write!(f, "({:?} {:?} {:?})", l, op, r),
+            RawExpr::Var(i) => write!(f, "{:?}", i),
+        }
     }
 }
 
 #[derive(PartialEq, Eq)]
 pub enum Expr {
-    Let(Ident, Box<Expr>, Box<Expr>),
-    Number(i32),
-    Op(Box<Expr>, Opcode, Box<Expr>),
-    Unit,
-    Var(Ident),
+    Let(Box<Expr>, Box<Expr>),
+    Literal(Val),
+    Var(usize),
+    Op(Box<Expr>, Opcode, Box<Expr>)
 }
 
 impl Debug for Expr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Expr::Let(i, expr, body) => write!(f, "let {:?} = {:?} in {:?}", i, expr, body),
-            Expr::Number(n) => write!(f, "{}", n),
+            Expr::Let(bnd, body) => write!(f, "let {:?} in {:?}", bnd, body),
+            Expr::Literal(v) => write!(f, "{}", v),
             Expr::Op(l, op, r) => write!(f, "({:?} {:?} {:?})", l, op, r),
-            Expr::Unit => write!(f, "()"),
             Expr::Var(i) => write!(f, "{:?}", i),
         }
     }
 }
 
-impl From<i32> for Expr {
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub struct RawIdent {
+    s: String,
+}
+
+impl<'a> From<&'a str> for RawIdent {
+    fn from(s: &'a str) -> Self {
+        RawIdent { s: s.into() }
+    }
+}
+
+impl From<i32> for RawExpr {
     fn from(n: i32) -> Self {
-        Expr::Number(n)
+        RawExpr::Literal(Val::Num(n))
     }
 }
 

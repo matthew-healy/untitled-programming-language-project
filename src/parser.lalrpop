@@ -1,15 +1,18 @@
 use std::str::FromStr;
-use crate::ast::{Expr, Ident, Opcode};
+use crate::{
+    ast::{RawExpr, RawIdent, Opcode},
+    values::Val,
+};
 
-grammar;
+grammar();
 
-pub Expr: Box<Expr> = {
-    "let" <Ident> "=" <Expr> "in" <Expr> => Box::new(Expr::Let(<>)),
+pub Expr: Box<RawExpr> = {
+    "let" <Ident> "=" <Expr> "in" <Expr> => Box::new(RawExpr::Let(<>)),
     BinaryOpExpr,
 }
 
-Tier<Op, NextTier>: Box<Expr> = {
-    Tier<Op, NextTier> Op NextTier => Box::new(Expr::Op(<>)),
+Tier<Op, NextTier>: Box<RawExpr> = {
+    Tier<Op, NextTier> Op NextTier => Box::new(RawExpr::Op(<>)),
     NextTier,
 };
 
@@ -26,14 +29,14 @@ FactorOp: Opcode = {
     "/" => Opcode::Div,
 };
 
-Term: Box<Expr> = {
-    Num => Box::new(Expr::Number(<>)),
-    "()" => Box::new(Expr::Unit),
-    <Ident> => Box::new(Expr::Var(<>)),
+Term: Box<RawExpr> = {
+    Num => Box::new(RawExpr::Literal(Val::Num(<>))),
+    "()" => Box::new(RawExpr::Literal(Val::Unit)),
+    <Ident> => Box::new(RawExpr::Var(<>)),
     "(" <Expr> ")"
 };
 
-Ident: Ident = {
+Ident: RawIdent = {
     r"_?[a-zA-Z][a-zA-Z0-9_-]*" => <>.into()
 }
 

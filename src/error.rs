@@ -1,4 +1,4 @@
-use crate::{ast::Ident, parser::Token};
+use crate::{ast::RawIdent, parser::Token};
 use lalrpop_util;
 
 #[derive(Debug, PartialEq)]
@@ -24,6 +24,9 @@ pub enum ParseError {
         token: Tok,
         expected: Vec<String>,
     },
+    UnboundIdentifier {
+        ident: RawIdent,
+    },
 }
 
 #[derive(Debug, PartialEq)]
@@ -37,6 +40,12 @@ type LalrpopError<'src> = lalrpop_util::ParseError<usize, Token<'src>, &'static 
 impl<'src> From<LalrpopError<'src>> for Error {
     fn from(e: LalrpopError<'src>) -> Self {
         Error::ParseError(e.into())
+    }
+}
+
+impl From<ParseError> for Error {
+    fn from(e: ParseError) -> Self {
+        Error::ParseError(e)
     }
 }
 
@@ -76,7 +85,6 @@ impl<'src> From<LalrpopError<'src>> for ParseError {
 #[derive(Debug, PartialEq)]
 pub enum TypeError {
     Mismatch,
-    UnboundIdent(Ident),
 }
 
 impl From<TypeError> for Error {

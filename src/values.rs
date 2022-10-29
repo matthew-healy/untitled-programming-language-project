@@ -1,9 +1,20 @@
+use std::fmt::Display;
+
 use crate::error::EvaluationError;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Val {
     Num(i32),
     Unit,
+}
+
+impl Display for Val {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Val::Num(n) => write!(f, "{}", n),
+            Val::Unit => write!(f, "()"),
+        }
+    }
 }
 
 impl Val {

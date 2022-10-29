@@ -1,16 +1,6 @@
-use crate::{
-    ast::{Expr, Ident, Opcode},
-    values::Val,
-};
+use crate::ast::Expr;
 
-/// operations run by the vm.
-pub enum Op {
-    Access(Ident),
-    Binary(Opcode),
-    Const(Val),
-    Let(Ident),
-    EndLet(Ident),
-}
+use super::Op;
 
 pub struct Compiler {
     code: Vec<Op>,
@@ -35,20 +25,21 @@ impl Compiler {
 
     fn push(&mut self, e: &Expr) {
         match e {
-            Expr::Let(i, binding, body) => {
-                self.code.push(Op::EndLet(i.clone()));
+            Expr::Let(binding, body) => {
+                self.code.push(Op::EndLet());
                 self.push(body);
-                self.code.push(Op::Let(i.clone()));
+                self.code.push(Op::Let());
                 self.push(binding);
             }
-            Expr::Number(n) => self.code.push(Op::Const(Val::Num(*n))),
+            Expr::Literal(v) => self.code.push(Op::Const(*v)),
             Expr::Op(l, op, r) => {
                 self.code.push(Op::Binary(*op));
                 self.push(r);
                 self.push(l);
             }
-            Expr::Unit => self.code.push(Op::Const(Val::Unit)),
-            Expr::Var(i) => self.code.push(Op::Access(i.clone())),
+            Expr::Var(i) => {
+                self.code.push(Op::Access(*i));
+            }
         }
     }
 }

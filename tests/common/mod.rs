@@ -1,11 +1,11 @@
 use untitled_programming_language_project::{
-    ast::{Expr, Opcode},
+    ast::{RawExpr, Opcode},
     check_types, evaluate, parse,
     types::Type,
     values::Val,
 };
 
-pub fn parse_successfully<'input>(input: &'input str) -> Expr {
+pub fn parse_successfully<'input>(input: &'input str) -> RawExpr {
     *parse(input).unwrap_or_else(|e| {
         panic!(
             "unexpected parse failure.\ninput: {}\nerror: {:?}",
@@ -33,10 +33,10 @@ pub fn evaluate_successfully<'input>(input: &'input str) -> Val {
 }
 
 /// make a binary op from two expressions.
-pub fn mk_op<L, R>(l: L, op: Opcode, r: R) -> Expr
+pub fn mk_op<L, R>(l: L, op: Opcode, r: R) -> RawExpr
 where
-    L: Into<Expr>,
-    R: Into<Expr>,
+    L: Into<RawExpr>,
+    R: Into<RawExpr>,
 {
-    Expr::Op(Box::new(l.into()), op, Box::new(r.into()))
+    RawExpr::Op(Box::new(l.into()), op, Box::new(r.into()))
 }
