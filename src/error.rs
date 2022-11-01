@@ -15,10 +15,6 @@ pub enum ParseError {
     InvalidToken {
         location: usize,
     },
-    UnexpectedEndOfFile {
-        location: usize,
-        expected: Vec<String>,
-    },
     UnexpectedToken {
         location: usize,
         token: Tok,
