@@ -1,4 +1,7 @@
-use crate::{ast::{RawIdent, Expr, RawExpr}, error::{Error, ParseError}};
+use crate::{
+    ast::{Expr, RawExpr, RawIdent},
+    error::{Error, ParseError},
+};
 
 pub struct ScopeChecker {
     idents: Vec<RawIdent>,
@@ -11,7 +14,7 @@ impl ScopeChecker {
     }
 }
 
-impl  ScopeChecker {
+impl ScopeChecker {
     pub fn check(&mut self, raw_expr: RawExpr) -> Result<Expr, Error> {
         match raw_expr {
             RawExpr::Let(ident, binding, body) => {

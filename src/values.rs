@@ -2,9 +2,9 @@ use std::fmt::Display;
 
 use crate::error::EvaluationError;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Val {
-    Num(i32),
+    Num(f64),
     Unit,
 }
 
@@ -18,7 +18,7 @@ impl Display for Val {
 }
 
 impl Val {
-    pub fn as_num(self) -> Result<i32, EvaluationError> {
+    pub fn as_num(self) -> Result<f64, EvaluationError> {
         match self {
             Val::Num(n) => Ok(n),
             v => Err(EvaluationError::Internal(format!(

@@ -1,16 +1,16 @@
-use ast::{RawExpr, Expr};
+use ast::{Expr, RawExpr};
 use error::Error;
 use lalrpop_util::{self, lalrpop_mod};
 use parser::ExprParser;
 use scopes::ScopeChecker;
-use types::{TypeChecker, Type};
+use types::{Type, TypeChecker};
 
 pub mod ast;
+mod env;
 pub mod error;
+mod scopes;
 pub mod types;
 pub mod values;
-mod env;
-mod scopes;
 mod vm;
 
 lalrpop_mod!(

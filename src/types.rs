@@ -5,7 +5,6 @@ use crate::env::Env;
 use crate::error::TypeError;
 use crate::values::Val;
 
-
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Type {
     Num,

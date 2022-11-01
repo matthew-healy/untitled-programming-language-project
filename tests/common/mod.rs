@@ -1,5 +1,5 @@
 use untitled_programming_language_project::{
-    ast::{RawExpr, Opcode},
+    ast::{Opcode, RawExpr},
     check_types, evaluate, parse,
     types::Type,
     values::Val,

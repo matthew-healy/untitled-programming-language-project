@@ -1,6 +1,6 @@
 // use std::collections::HashMap;
 
-use crate::{ast::Opcode, error::EvaluationError, values::Val, env::Env};
+use crate::{ast::Opcode, env::Env, error::EvaluationError, values::Val};
 
 mod compiler;
 mod stack;
@@ -44,7 +44,7 @@ impl VirtualMachine {
                         Opcode::Mul => l * r,
                         Opcode::Sub => l - r,
                         Opcode::Div => {
-                            if r == 0 {
+                            if r == 0.0 {
                                 Err(EvaluationError::DivisionByZero)
                             } else {
                                 Ok(l / r)
@@ -92,7 +92,7 @@ impl Stack<Val> {
         }
     }
 
-    fn force_pop_num(&mut self) -> Result<i32, EvaluationError> {
+    fn force_pop_num(&mut self) -> Result<f64, EvaluationError> {
         match self.force_pop()? {
             Val::Num(n) => Ok(n),
             v => Err(EvaluationError::Internal(format!(

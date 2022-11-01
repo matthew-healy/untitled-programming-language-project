@@ -40,6 +40,6 @@ Ident: RawIdent = {
     r"_?[a-zA-Z][a-zA-Z0-9_-]*" => <>.into()
 }
 
-Num: i32 = {
-    r"-?[0-9]+" => i32::from_str(<>).unwrap()
+Num: f64 = {
+    r"-?[0-9]+(.[0-9]+)?" => f64::from_str(<>).unwrap()
 }

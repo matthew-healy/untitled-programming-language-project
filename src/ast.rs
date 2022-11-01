@@ -2,14 +2,13 @@ use std::fmt::Debug;
 
 use crate::values::Val;
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq)]
 pub enum RawExpr {
     Let(RawIdent, Box<RawExpr>, Box<RawExpr>),
     Literal(Val),
     Var(RawIdent),
-    Op(Box<RawExpr>, Opcode, Box<RawExpr>)
+    Op(Box<RawExpr>, Opcode, Box<RawExpr>),
 }
-
 
 impl Debug for RawExpr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -22,12 +21,12 @@ impl Debug for RawExpr {
     }
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq)]
 pub enum Expr {
     Let(Box<Expr>, Box<Expr>),
     Literal(Val),
     Var(usize),
-    Op(Box<Expr>, Opcode, Box<Expr>)
+    Op(Box<Expr>, Opcode, Box<Expr>),
 }
 
 impl Debug for Expr {
@@ -52,8 +51,8 @@ impl<'a> From<&'a str> for RawIdent {
     }
 }
 
-impl From<i32> for RawExpr {
-    fn from(n: i32) -> Self {
+impl From<f64> for RawExpr {
+    fn from(n: f64) -> Self {
         RawExpr::Literal(Val::Num(n))
     }
 }

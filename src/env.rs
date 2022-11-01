@@ -2,7 +2,7 @@ pub struct Env<T> {
     bindings: Vec<T>,
 }
 
-impl <T> Env<T> {
+impl<T> Env<T> {
     pub fn new() -> Self {
         let bindings = Vec::new();
         Env { bindings }
