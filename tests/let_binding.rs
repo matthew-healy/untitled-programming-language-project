@@ -1,5 +1,5 @@
 use untitled_programming_language_project::{
-    ast::{Opcode, RawExpr, RawIdent},
+    ast::{BinaryOp, RawExpr, RawIdent},
     check_types,
     error::{Error, ParseError},
     parse,
@@ -48,7 +48,7 @@ fn parsing() {
                     RawExpr::Literal(Val::Num(2.0)),
                     mk_op(
                         RawExpr::Var("x".into()),
-                        Opcode::Add,
+                        BinaryOp::Add,
                         RawExpr::Var("y".into()),
                     ),
                 ),

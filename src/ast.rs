@@ -7,7 +7,7 @@ pub enum RawExpr {
     Let(RawIdent, Box<RawExpr>, Box<RawExpr>),
     Literal(Val),
     Var(RawIdent),
-    Op(Box<RawExpr>, Opcode, Box<RawExpr>),
+    Op(Box<RawExpr>, BinaryOp, Box<RawExpr>),
 }
 
 impl Debug for RawExpr {
@@ -26,7 +26,7 @@ pub enum Expr {
     Let(Box<Expr>, Box<Expr>),
     Literal(Val),
     Var(usize),
-    Op(Box<Expr>, Opcode, Box<Expr>),
+    Op(Box<Expr>, BinaryOp, Box<Expr>),
 }
 
 impl Debug for Expr {
@@ -58,20 +58,20 @@ impl From<f64> for RawExpr {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]
-pub enum Opcode {
+pub enum BinaryOp {
     Mul,
     Div,
     Add,
     Sub,
 }
 
-impl Debug for Opcode {
+impl Debug for BinaryOp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let w = match *self {
-            Opcode::Mul => "*",
-            Opcode::Div => "/",
-            Opcode::Add => "+",
-            Opcode::Sub => "-",
+            BinaryOp::Mul => "*",
+            BinaryOp::Div => "/",
+            BinaryOp::Add => "+",
+            BinaryOp::Sub => "-",
         };
         write!(f, "{}", w)
     }

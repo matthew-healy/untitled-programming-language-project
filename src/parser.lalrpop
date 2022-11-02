@@ -1,6 +1,6 @@
 use std::str::FromStr;
 use crate::{
-    ast::{RawExpr, RawIdent, Opcode},
+    ast::{RawExpr, RawIdent, BinaryOp},
     values::Val,
 };
 
@@ -19,14 +19,14 @@ Tier<Op, NextTier>: Box<RawExpr> = {
 BinaryOpExpr = Tier<ExprOp, Factor>;
 Factor = Tier<FactorOp, Term>;
 
-ExprOp: Opcode = {
-    "+" => Opcode::Add,
-    "-" => Opcode::Sub,
+ExprOp: BinaryOp = {
+    "+" => BinaryOp::Add,
+    "-" => BinaryOp::Sub,
 };
 
-FactorOp: Opcode = {
-    "*" => Opcode::Mul,
-    "/" => Opcode::Div,
+FactorOp: BinaryOp = {
+    "*" => BinaryOp::Mul,
+    "/" => BinaryOp::Div,
 };
 
 Term: Box<RawExpr> = {

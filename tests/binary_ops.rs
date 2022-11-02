@@ -14,17 +14,17 @@ fn parsing() {
     use ast::*;
 
     for (name, input, expected) in [
-        ("addition", "1 + 1", mk_op(1.0, Opcode::Add, 1.0)),
-        ("subtraction", "99 - 4", mk_op(99.0, Opcode::Sub, 4.0)),
+        ("addition", "1 + 1", mk_op(1.0, BinaryOp::Add, 1.0)),
+        ("subtraction", "99 - 4", mk_op(99.0, BinaryOp::Sub, 4.0)),
         (
             "multiplication",
             "-3 * -914",
-            mk_op(-3.0, Opcode::Mul, -914.0),
+            mk_op(-3.0, BinaryOp::Mul, -914.0),
         ),
         (
             "division",
             "4444 / 1111",
-            mk_op(4444.0, Opcode::Div, 1111.0),
+            mk_op(4444.0, BinaryOp::Div, 1111.0),
         ),
     ] {
         let actual = parse_successfully(input);
@@ -34,7 +34,7 @@ fn parsing() {
 
 #[test]
 fn precedence() {
-    use ast::{self, Opcode::*};
+    use ast::{self, BinaryOp::*};
 
     for (name, input, expected) in [
         (

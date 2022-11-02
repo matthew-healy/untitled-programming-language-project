@@ -1,5 +1,5 @@
 use untitled_programming_language_project::{
-    ast::{Opcode, RawExpr},
+    ast::{BinaryOp, RawExpr},
     check_types, evaluate, parse,
     types::Type,
     values::Val,
@@ -33,7 +33,7 @@ pub fn evaluate_successfully<'input>(input: &'input str) -> Val {
 }
 
 /// make a binary op from two expressions.
-pub fn mk_op<L, R>(l: L, op: Opcode, r: R) -> RawExpr
+pub fn mk_op<L, R>(l: L, op: BinaryOp, r: R) -> RawExpr
 where
     L: Into<RawExpr>,
     R: Into<RawExpr>,

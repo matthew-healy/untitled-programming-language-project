@@ -1,6 +1,6 @@
 // use std::collections::HashMap;
 
-use crate::{ast::Opcode, env::Env, error::EvaluationError, values::Val};
+use crate::{ast::BinaryOp, env::Env, error::EvaluationError, values::Val};
 
 mod compiler;
 mod stack;
@@ -11,7 +11,7 @@ pub use compiler::Compiler;
 /// operations run by the vm.
 pub enum Op {
     Access(usize),
-    Binary(Opcode),
+    Binary(BinaryOp),
     Const(Val),
     Let(),
     EndLet(),
@@ -40,10 +40,10 @@ impl VirtualMachine {
                     let l = self.stack.force_pop_num()?;
 
                     let res = match op {
-                        Opcode::Add => l + r,
-                        Opcode::Mul => l * r,
-                        Opcode::Sub => l - r,
-                        Opcode::Div => {
+                        BinaryOp::Add => l + r,
+                        BinaryOp::Mul => l * r,
+                        BinaryOp::Sub => l - r,
+                        BinaryOp::Div => {
                             if r == 0.0 {
                                 Err(EvaluationError::DivisionByZero)
                             } else {
