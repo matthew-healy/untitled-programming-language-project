@@ -69,3 +69,11 @@ Ident: RawIdent = {
 Num: f64 = {
     r"-?[0-9]+(?:\.[0-9]+)?" => f64::from_str(<>).unwrap(),
 }
+
+match {
+    // skip whitespace by default
+    r"\s*" => { },
+    // skip single-line comments beginning with "--"
+    r"--[^\n\r]*[\n\r]*" => { },
+    _
+}
