@@ -1,39 +1,65 @@
 use std::str::FromStr;
 use crate::{
     ast::{RawExpr, RawIdent, BinaryOp},
+    types::Type,
     values::Val,
 };
 
 grammar();
 
-pub Expr: Box<RawExpr> = {
-    "let" <Ident> "=" <Expr> "in" <Expr> => Box::new(RawExpr::Let(<>)),
-    BinaryOpExpr,
+pub Uplp = Expr;
+
+Expr: Box<RawExpr> = {
+    Abstraction => <>,
+    Application => <>,
 }
 
-Tier<Op, NextTier>: Box<RawExpr> = {
-    Tier<Op, NextTier> Op NextTier => Box::new(RawExpr::Op(<>)),
+Abstraction: Box<RawExpr> = {
+    // function definition
+    "|" <Ident> ":" <Type> "|" <Expr> => Box::new(RawExpr::Lambda(<>)),
+    // let bindings
+    "let" <Ident> "=" <Expr> "in" <Expr> => Box::new(RawExpr::Let(<>)),
+}
+
+// n-ary application, where n currently is between 0 and 2
+Application: Box<RawExpr> = {
+    // either an infix binary op or a terminal.
+    // i don't love that terminal is nested here, but don't currently have
+    // a better idea.
+    InfixBinaryOp => <>,
+    // function application
+    <Application> <InfixBinaryOp> => Box::new(RawExpr::App(<>)),
+}
+
+// Used to encode precedence levels for infix binary ops.
+InfixOpTier<Op, NextTier>: Box<RawExpr> = {
+    InfixOpTier<Op, NextTier> Op NextTier => Box::new(RawExpr::Op(<>)),
     NextTier,
 };
 
-BinaryOpExpr = Tier<ExprOp, Factor>;
-Factor = Tier<FactorOp, Term>;
+InfixBinaryOp = InfixOpTier<InfixOp1, InfixBinaryOpTier2>;
+InfixBinaryOpTier2 = InfixOpTier<InfixOp2, Terminal>;
 
-ExprOp: BinaryOp = {
+InfixOp1: BinaryOp = {
     "+" => BinaryOp::Add,
     "-" => BinaryOp::Sub,
 };
 
-FactorOp: BinaryOp = {
+InfixOp2: BinaryOp = {
     "*" => BinaryOp::Mul,
     "/" => BinaryOp::Div,
 };
 
-Term: Box<RawExpr> = {
+Terminal: Box<RawExpr> = {
     Num => Box::new(RawExpr::Literal(Val::Num(<>))),
     "()" => Box::new(RawExpr::Literal(Val::Unit)),
     <Ident> => Box::new(RawExpr::Var(<>)),
     "(" <Expr> ")"
+};
+
+Type: Type = {
+    "Num" => Type::Num,
+    "Unit" => Type::Unit,
 };
 
 Ident: RawIdent = {
@@ -41,5 +67,5 @@ Ident: RawIdent = {
 }
 
 Num: f64 = {
-    r"-?[0-9]+(.[0-9]+)?" => f64::from_str(<>).unwrap()
+    r"-?[0-9]+(?:\.[0-9]+)?" => f64::from_str(<>).unwrap(),
 }

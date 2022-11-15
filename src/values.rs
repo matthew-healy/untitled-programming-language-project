@@ -1,9 +1,10 @@
 use std::fmt::Display;
 
-use crate::error::EvaluationError;
+use crate::{env::Env, error::EvaluationError, vm::Op};
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Val {
+    Closure { body: Vec<Op>, env: Env<Val> },
     Num(f64),
     Unit,
 }
@@ -11,6 +12,7 @@ pub enum Val {
 impl Display for Val {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Val::Closure { .. } => write!(f, "<function>"),
             Val::Num(n) => write!(f, "{}", n),
             Val::Unit => write!(f, "()"),
         }

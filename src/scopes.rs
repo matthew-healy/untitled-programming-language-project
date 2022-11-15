@@ -17,6 +17,17 @@ impl ScopeChecker {
 impl ScopeChecker {
     pub fn check(&mut self, raw_expr: RawExpr) -> Result<Expr, Error> {
         match raw_expr {
+            RawExpr::App(fnc, a) => {
+                let fnc = self.check(*fnc)?;
+                let a = self.check(*a)?;
+                Ok(Expr::App(Box::new(fnc), Box::new(a)))
+            }
+            RawExpr::Lambda(ident, ty, body) => {
+                self.idents.push(ident);
+                let body = Box::new(self.check(*body)?);
+                self.idents.pop();
+                Ok(Expr::Lambda(ty, body))
+            }
             RawExpr::Let(ident, binding, body) => {
                 let binding = Box::new(self.check(*binding)?);
                 self.idents.push(ident);

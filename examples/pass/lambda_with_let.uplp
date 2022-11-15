@@ -1,0 +1,3 @@
+-- EXPECTED: 55
+let f = |x: Num| let y = 0 in x + 30 in
+f 25
