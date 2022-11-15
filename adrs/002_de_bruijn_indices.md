@@ -1,4 +1,4 @@
-# ADR-0002: De Bruijn Indices
+# ADR-0002: De Bruijn Indices ya bass
 
 **Date**: 28/10/22
 **Status**: Current
