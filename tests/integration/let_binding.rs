@@ -7,8 +7,7 @@ use untitled_programming_language_project::{
     values::Val,
 };
 
-pub mod common;
-use common::{evaluate_successfully, mk_op, parse_successfully};
+use crate::common::{evaluate_successfully, mk_op, parse_successfully};
 
 use crate::common::typecheck_successfully;
 

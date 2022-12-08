@@ -3,8 +3,7 @@ use std::fmt::Display;
 use quickcheck::{quickcheck, Arbitrary};
 use untitled_programming_language_project::{ast::RawExpr, types::Type, values::Val};
 
-pub mod common;
-use common::{evaluate_successfully, parse_successfully, typecheck_successfully};
+use crate::common::{evaluate_successfully, parse_successfully, typecheck_successfully};
 
 quickcheck! {
     fn parsing(n: ValidNum) -> bool {

@@ -6,8 +6,7 @@ use untitled_programming_language_project::{
     values::Val,
 };
 
-pub mod common;
-use common::{mk_op, parse_successfully, typecheck_successfully};
+use crate::common::{mk_op, parse_successfully, typecheck_successfully};
 
 #[test]
 fn parsing() {
