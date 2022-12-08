@@ -43,6 +43,7 @@ pub fn test_example_file(p: &str) {
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type", content = "value")]
 enum TestExpectation {
+    Bool(bool),
     Num(f64),
     Unit {},
 }
@@ -50,6 +51,7 @@ enum TestExpectation {
 impl From<TestExpectation> for Val {
     fn from(e: TestExpectation) -> Self {
         match e {
+            TestExpectation::Bool(b) => Val::Bool(b),
             TestExpectation::Num(n) => Val::Num(n),
             TestExpectation::Unit {} => Val::Unit,
         }
