@@ -10,44 +10,40 @@ grammar();
 pub Uplp = Expr;
 
 Expr: Box<RawExpr> = {
-    Abstraction => <>,
-    Application => <>,
-}
-
-Abstraction: Box<RawExpr> = {
-    // function definition
-    "|" <Ident> ":" <Type> "|" <Expr> => Box::new(RawExpr::Lambda(<>)),
-    // let bindings
+    InfixExpr,
     "let" <Ident> "=" <Expr> "in" <Expr> => Box::new(RawExpr::Let(<>)),
+    "|" <Ident> ":" <Type> "|" <Expr> => Box::new(RawExpr::Lambda(<>)),
 }
 
-// n-ary application, where n currently is between 0 and 2
-Application: Box<RawExpr> = {
-    // either an infix binary op or a terminal.
-    // i don't love that terminal is nested here, but don't currently have
-    // a better idea.
-    InfixBinaryOp => <>,
-    // function application
-    <Application> <InfixBinaryOp> => Box::new(RawExpr::App(<>)),
+InfixExpr: Box<RawExpr> = {
+    #[precedence(level="0")]
+    Applicative,
+
+    #[precedence(level="1")]
+    #[assoc(side="left")]
+    InfixBOpApp<InfixBOp1, InfixExpr, InfixExpr>,
+
+    #[precedence(level="2")]
+    #[assoc(side="left")]
+    InfixBOpApp<InfixBOp2, InfixExpr, InfixExpr>,
 }
 
-// Used to encode precedence levels for infix binary ops.
-InfixOpTier<Op, NextTier>: Box<RawExpr> = {
-    InfixOpTier<Op, NextTier> Op NextTier => Box::new(RawExpr::Op(<>)),
-    NextTier,
-};
+Applicative: Box<RawExpr> = {
+    Applicative Terminal => Box::new(RawExpr::App(<>)),
+    Terminal,
+}
 
-InfixBinaryOp = InfixOpTier<InfixOp1, InfixBinaryOpTier2>;
-InfixBinaryOpTier2 = InfixOpTier<InfixOp2, Terminal>;
+InfixBOpApp<BOp, L, R>: Box<RawExpr> =
+    <L> <BOp> <R> => Box::new(RawExpr::Op(<>));
 
-InfixOp1: BinaryOp = {
-    "+" => BinaryOp::Add,
-    "-" => BinaryOp::Sub,
-};
-
-InfixOp2: BinaryOp = {
+InfixBOp1: BinaryOp = {
     "*" => BinaryOp::Mul,
     "/" => BinaryOp::Div,
+};
+
+InfixBOp2: BinaryOp = {
+    "+" => BinaryOp::Add,
+    "-" => BinaryOp::Sub,
 };
 
 Terminal: Box<RawExpr> = {

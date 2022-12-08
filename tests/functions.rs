@@ -22,6 +22,11 @@ fn multi_arg_application() {
     test_example_file(Path::new("examples/pass/multi_arg_application.uplp"))
 }
 
+#[test]
+fn fn_app_precedence() {
+    test_example_file(Path::new("examples/pass/fn_app_precedence.uplp"))
+}
+
 fn test_example_file(p: &Path) {
     let path = {
         let proj_root = env::var("CARGO_MANIFEST_DIR")
