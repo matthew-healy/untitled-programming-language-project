@@ -8,6 +8,7 @@ use crate::values::Val;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Type {
     Arrow(Box<Type>, Box<Type>),
+    Bool,
     Num,
     Unit,
 }
@@ -46,6 +47,7 @@ impl TypeChecker {
                 self.typing_env.bind(binding_ty);
                 self.check(body)
             }
+            Literal(Val::Bool(_)) => Ok(Type::Bool),
             Literal(Val::Num(_)) => Ok(Type::Num),
             Literal(Val::Unit) => Ok(Type::Unit),
             Literal(Val::Closure { .. }) => unreachable!("We don't have closure literals."),
