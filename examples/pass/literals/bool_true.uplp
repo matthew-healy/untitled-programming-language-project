@@ -1,0 +1,3 @@
+-- test: skip
+-- test: check { "type": "Bool", "value": true }
+true

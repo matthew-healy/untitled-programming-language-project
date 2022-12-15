@@ -1,3 +1,0 @@
--- EXPECTED: 2.0
-let f = |x: Num| x + 1 in
-f 1

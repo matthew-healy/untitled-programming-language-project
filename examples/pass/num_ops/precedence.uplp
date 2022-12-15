@@ -1,0 +1,2 @@
+-- test: check { "type": "Num", "value": 676.5 }
+99 + 105 * 22 / 4

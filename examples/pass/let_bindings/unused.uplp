@@ -1,0 +1,4 @@
+-- test: check { "type": "Num", "value": 5 }
+let a = 100 in
+let b = |x: Unit| 5 in
+b ()

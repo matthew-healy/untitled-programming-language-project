@@ -1,0 +1,2 @@
+-- test: check { "type": "Unit", "value": {} }
+let u = () in u

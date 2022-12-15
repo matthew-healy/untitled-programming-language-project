@@ -1,3 +1,0 @@
--- EXPECTED: 4
-let f = |x: Num| x * 3 in
-f 1 + 1

@@ -1,3 +1,3 @@
--- EXPECTED: 110
+-- test: check { "type": "Num", "value": 110 }
 let f = |x: Num| |y: Num| x + y in 
 f 55.5 54.5
