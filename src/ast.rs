@@ -20,7 +20,9 @@ impl Debug for RawExpr {
             RawExpr::Lambda(i, ty, body) => write!(f, "(|{i:?}: {ty:?}| {body:?})"),
             RawExpr::Let(i, bnd, body) => write!(f, "(let {i:?} = {bnd:?} in {body:?})"),
             RawExpr::Literal(v) => write!(f, "{v}"),
-            RawExpr::IfThenElse(cond, then, els) => write!(f, "if {cond:?} then {then:?} else {els:?}"),
+            RawExpr::IfThenElse(cond, then, els) => {
+                write!(f, "if {cond:?} then {then:?} else {els:?}")
+            }
             RawExpr::Op(l, op, r) => write!(f, "({l:?} {op:?} {r:?})"),
             RawExpr::Var(i) => write!(f, "{i:?}"),
         }

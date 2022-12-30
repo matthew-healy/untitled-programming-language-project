@@ -107,7 +107,7 @@ impl VirtualMachine {
                     let prev_code = mem::replace(&mut self.code, branch);
 
                     self.stack.push(Marker::Code(prev_code));
-                },
+                }
                 Op::Join() => {
                     let ret_val = self.stack.force_pop_val()?;
                     let code = self.stack.force_pop_code()?;
@@ -182,7 +182,7 @@ impl Stack<Marker> {
             m => Err(EvaluationError::Internal(format!(
                 "Expected bool but got {:?}",
                 m
-            )))
+            ))),
         }
     }
 
