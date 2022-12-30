@@ -51,6 +51,16 @@ impl TypeChecker {
             Literal(Val::Num(_)) => Ok(Type::Num),
             Literal(Val::Unit) => Ok(Type::Unit),
             Literal(Val::Closure { .. }) => unreachable!("We don't have closure literals."),
+            IfThenElse(cond, thn, els) => {
+                let cond_ty = self.check(cond)?;
+                let thn_ty = self.check(thn)?;
+                let els_ty = self.check(els)?;
+                if cond_ty == Type::Bool && thn_ty == els_ty {
+                    Ok(thn_ty)
+                } else {
+                    Err(TypeError::Mismatch)
+                }
+            }
             Op(l, _, r) => {
                 let l_ty = self.check(l)?;
                 let r_ty = self.check(r)?;

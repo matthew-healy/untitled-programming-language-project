@@ -18,6 +18,12 @@ impl Compiler {
         Compiler { code }
     }
 
+    fn for_branch() -> Self {
+        let mut code = Vec::new();
+        code.push(Op::Join());
+        Compiler { code }
+    }
+
     /// compiles the syntax tree to a "bytecode" representation.
     ///
     /// note that instructions are returned in reverse order - i.e. the last
@@ -37,8 +43,7 @@ impl Compiler {
                 self.push(fnc);
             }
             Expr::Lambda(_, body) => {
-                let body_compiler = Compiler::for_closure();
-                let body_ops = body_compiler.compile(body);
+                let body_ops = Compiler::for_closure().compile(body);
                 self.code.push(Op::Closure(body_ops));
             }
             Expr::Let(binding, body) => {
@@ -48,6 +53,12 @@ impl Compiler {
                 self.push(binding);
             }
             Expr::Literal(v) => self.code.push(Op::Const(v.clone())),
+            Expr::IfThenElse(cond, thn, els) => {
+                let thn_ops = Compiler::for_branch().compile(thn);
+                let els_ops = Compiler::for_branch().compile(els);
+                self.code.push(Op::Sel(thn_ops, els_ops));
+                self.push(cond);
+            }
             Expr::Op(l, op, r) => {
                 self.code.push(Op::Binary(*op));
                 self.push(r);

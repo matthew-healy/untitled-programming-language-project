@@ -21,6 +21,8 @@ pub enum Op {
     Let(),
     EndLet(),
     Return(),
+    Sel(Vec<Op>, Vec<Op>),
+    Join(),
 }
 
 pub struct VirtualMachine {
@@ -98,6 +100,22 @@ impl VirtualMachine {
 
                     self.stack.push(Marker::Val(ret_val));
                 }
+                Op::Sel(thn, els) => {
+                    let cond = self.stack.force_pop_bool()?;
+                    let branch = if cond { thn } else { els };
+
+                    let prev_code = mem::replace(&mut self.code, branch);
+
+                    self.stack.push(Marker::Code(prev_code));
+                },
+                Op::Join() => {
+                    let ret_val = self.stack.force_pop_val()?;
+                    let code = self.stack.force_pop_code()?;
+
+                    self.code = code;
+
+                    self.stack.push(Marker::Val(ret_val));
+                }
             }
         }
 
@@ -155,6 +173,16 @@ impl Stack<Marker> {
                 "Expected Val but got {:?}",
                 m
             ))),
+        }
+    }
+
+    fn force_pop_bool(&mut self) -> Result<bool, EvaluationError> {
+        match self.force_pop_val()? {
+            Val::Bool(b) => Ok(b),
+            m => Err(EvaluationError::Internal(format!(
+                "Expected bool but got {:?}",
+                m
+            )))
         }
     }
 

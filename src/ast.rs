@@ -8,6 +8,7 @@ pub enum RawExpr {
     Lambda(RawIdent, Type, Box<RawExpr>),
     Let(RawIdent, Box<RawExpr>, Box<RawExpr>),
     Literal(Val),
+    IfThenElse(Box<RawExpr>, Box<RawExpr>, Box<RawExpr>),
     Var(RawIdent),
     Op(Box<RawExpr>, BinaryOp, Box<RawExpr>),
 }
@@ -19,6 +20,7 @@ impl Debug for RawExpr {
             RawExpr::Lambda(i, ty, body) => write!(f, "(|{i:?}: {ty:?}| {body:?})"),
             RawExpr::Let(i, bnd, body) => write!(f, "(let {i:?} = {bnd:?} in {body:?})"),
             RawExpr::Literal(v) => write!(f, "{v}"),
+            RawExpr::IfThenElse(cond, then, els) => write!(f, "if {cond:?} then {then:?} else {els:?}"),
             RawExpr::Op(l, op, r) => write!(f, "({l:?} {op:?} {r:?})"),
             RawExpr::Var(i) => write!(f, "{i:?}"),
         }
@@ -31,6 +33,7 @@ pub enum Expr {
     Lambda(Type, Box<Expr>),
     Let(Box<Expr>, Box<Expr>),
     Literal(Val),
+    IfThenElse(Box<Expr>, Box<Expr>, Box<Expr>),
     Var(usize),
     Op(Box<Expr>, BinaryOp, Box<Expr>),
 }
@@ -42,6 +45,7 @@ impl Debug for Expr {
             Expr::Lambda(ty, body) => write!(f, "|{ty:?}| {body:?}"),
             Expr::Let(bnd, body) => write!(f, "let {bnd:?} in {body:?}"),
             Expr::Literal(v) => write!(f, "{v}"),
+            Expr::IfThenElse(cond, thn, els) => write!(f, "if {cond:?} then {thn:?} else {els:?}"),
             Expr::Op(l, op, r) => write!(f, "({l:?} {op:?} {r:?})"),
             Expr::Var(i) => write!(f, "{i:?}"),
         }

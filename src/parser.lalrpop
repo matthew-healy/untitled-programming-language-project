@@ -13,6 +13,7 @@ Expr: Box<RawExpr> = {
     InfixExpr,
     "let" <Ident> "=" <Expr> "in" <Expr> => Box::new(RawExpr::Let(<>)),
     "|" <Ident> ":" <Type> "|" <Expr> => Box::new(RawExpr::Lambda(<>)),
+    "if" <Expr> "then" <Expr> "else" <Expr> => Box::new(RawExpr::IfThenElse(<>)),
 }
 
 InfixExpr: Box<RawExpr> = {

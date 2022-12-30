@@ -35,6 +35,12 @@ impl ScopeChecker {
                 Ok(Expr::Let(binding, body))
             }
             RawExpr::Literal(v) => Ok(Expr::Literal(v)),
+            RawExpr::IfThenElse(cond, thn, els) => {
+                let cond =Box::new(self.check(*cond)?);
+                let thn = Box::new(self.check(*thn)?);
+                let els = Box::new(self.check(*els)?);
+                Ok(Expr::IfThenElse(cond, thn, els))
+            }
             RawExpr::Op(l, op, r) => {
                 let l = self.check(*l)?;
                 let r = self.check(*r)?;

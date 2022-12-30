@@ -1,0 +1,5 @@
+-- test: check { "type": "Num", "value": 100 }
+let bool_fn = |x: Unit| true in
+if bool_fn () 
+  then 100 
+  else -100
