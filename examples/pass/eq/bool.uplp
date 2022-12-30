@@ -1,0 +1,5 @@
+-- test: check { "type": "Bool", "value": true }
+true == true && 
+false == false &&
+(true == false) == false &&
+(false == true) == false

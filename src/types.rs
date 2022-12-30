@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::ast::Expr;
+use crate::ast::{BinaryOp, Expr};
 use crate::env::Env;
 use crate::error::TypeError;
 use crate::values::Val;
@@ -61,11 +61,13 @@ impl TypeChecker {
                     Err(TypeError::Mismatch)
                 }
             }
-            Op(l, _, r) => {
+            Op(l, op, r) => {
                 let l_ty = self.check(l)?;
                 let r_ty = self.check(r)?;
-                match (l_ty, r_ty) {
-                    (Type::Num, Type::Num) => Ok(Type::Num),
+                match (op, l_ty, r_ty) {
+                    (BinaryOp::Eq, _, _) => Ok(Type::Bool),
+                    (BinaryOp::And, Type::Bool, Type::Bool) => Ok(Type::Bool),
+                    (_, Type::Num, Type::Num) => Ok(Type::Num),
                     _ => Err(TypeError::Mismatch),
                 }
             }

@@ -94,6 +94,7 @@ impl From<TypeError> for Error {
 #[derive(Debug, PartialEq)]
 pub enum EvaluationError {
     DivisionByZero,
+    IllegalEquality,
     Internal(String),
 }
 

@@ -61,23 +61,38 @@ impl VirtualMachine {
                     self.stack.push(Marker::Code(prev_code));
                 }
                 Op::Binary(op) => {
-                    let r = self.stack.force_pop_num()?;
-                    let l = self.stack.force_pop_num()?;
+                    let r = self.stack.force_pop_val()?;
+                    let l = self.stack.force_pop_val()?;
 
                     let res = match op {
-                        BinaryOp::Add => l + r,
-                        BinaryOp::Mul => l * r,
-                        BinaryOp::Sub => l - r,
+                        BinaryOp::Add => {
+                            let (l, r) = (l.as_num()?, r.as_num()?);
+                            Ok(Val::Num(l + r))
+                        }
+                        BinaryOp::Mul => {
+                            let (l, r) = (l.as_num()?, r.as_num()?);
+                            Ok(Val::Num(l * r))
+                        }
+                        BinaryOp::Sub => {
+                            let (l, r) = (l.as_num()?, r.as_num()?);
+                            Ok(Val::Num(l - r))
+                        }
                         BinaryOp::Div => {
+                            let (l, r) = (l.as_num()?, r.as_num()?);
                             if r == 0.0 {
                                 Err(EvaluationError::DivisionByZero)
                             } else {
-                                Ok(l / r)
+                                Ok(Val::Num(l / r))
                             }
-                        }?,
-                    };
+                        }
+                        BinaryOp::Eq => Ok(Val::Bool(l.try_eq(&r)?)),
+                        BinaryOp::And => {
+                            let (l, r) = (l.as_bool()?, r.as_bool()?);
+                            Ok(Val::Bool(l && r))
+                        }
+                    }?;
 
-                    self.stack.push(Marker::Val(Val::Num(res)));
+                    self.stack.push(Marker::Val(res));
                 }
                 Op::Closure(body) => self.stack.push(Marker::Val(Val::Closure {
                     body,
@@ -192,16 +207,6 @@ impl Stack<Marker> {
             m => Err(EvaluationError::Internal(format!(
                 "Expected closure but got {:?}",
                 m
-            ))),
-        }
-    }
-
-    fn force_pop_num(&mut self) -> Result<f64, EvaluationError> {
-        match self.force_pop_val()? {
-            Val::Num(n) => Ok(n),
-            v => Err(EvaluationError::Internal(format!(
-                "Expected Num but got {:?}",
-                v
             ))),
         }
     }

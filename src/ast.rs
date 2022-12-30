@@ -83,6 +83,8 @@ pub enum BinaryOp {
     Div,
     Add,
     Sub,
+    Eq,
+    And,
 }
 
 impl Debug for BinaryOp {
@@ -92,6 +94,8 @@ impl Debug for BinaryOp {
             BinaryOp::Div => "/",
             BinaryOp::Add => "+",
             BinaryOp::Sub => "-",
+            BinaryOp::Eq => "*",
+            BinaryOp::And => "&&",
         };
         write!(f, "{}", w)
     }

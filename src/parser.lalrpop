@@ -27,6 +27,14 @@ InfixExpr: Box<RawExpr> = {
     #[precedence(level="2")]
     #[assoc(side="left")]
     InfixBOpApp<InfixBOp2, InfixExpr, InfixExpr>,
+
+    #[precedence(level="3")]
+    #[assoc(side="left")]
+    InfixBOpApp<InfixBOp3, InfixExpr, InfixExpr>,
+
+    #[precedence(level = "4")]
+    #[assoc(side="left")]
+    InfixBOpApp<InfixBOp4, InfixExpr, InfixExpr>
 }
 
 Applicative: Box<RawExpr> = {
@@ -46,6 +54,14 @@ InfixBOp2: BinaryOp = {
     "+" => BinaryOp::Add,
     "-" => BinaryOp::Sub,
 };
+
+InfixBOp3: BinaryOp = {
+    "==" => BinaryOp::Eq,
+}
+
+InfixBOp4: BinaryOp = {
+    "&&" => BinaryOp::And,
+}
 
 Terminal: Box<RawExpr> = {
     Bool => Box::new(RawExpr::Literal(Val::Bool(<>))),
