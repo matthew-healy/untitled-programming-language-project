@@ -74,8 +74,7 @@ impl TypeChecker {
             Var(i) => Ok(self
                 .typing_env
                 .lookup(*i)
-                .expect("Scope check should happen before typechecking")
-                .clone()),
+                .expect("Scope check should happen before typechecking")),
         }
     }
 }

@@ -1,7 +1,7 @@
 use crate::{ast::RawIdent, parser::Token};
 use lalrpop_util;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Error {
     ParseError(ParseError),
     TypeError(TypeError),
@@ -10,7 +10,7 @@ pub enum Error {
 
 // Parse errors
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum ParseError {
     InvalidToken {
         location: usize,
@@ -25,7 +25,7 @@ pub enum ParseError {
     },
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Tok {
     EndOfFile,
     Raw(String),
@@ -78,7 +78,7 @@ impl<'src> From<LalrpopError<'src>> for ParseError {
 
 // Type Errors
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum TypeError {
     Mismatch,
 }
@@ -91,7 +91,7 @@ impl From<TypeError> for Error {
 
 // Evaluation Errors
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum EvaluationError {
     DivisionByZero,
     IllegalEquality,

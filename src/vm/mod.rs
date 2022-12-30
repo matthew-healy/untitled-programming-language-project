@@ -42,7 +42,7 @@ impl VirtualMachine {
         while let Some(o) = self.code.pop() {
             match o {
                 Op::Access(i) => {
-                    let v = self.env.lookup(i).ok_or(EvaluationError::Internal(format!(
+                    let v = self.env.lookup(i).ok_or_else(|| EvaluationError::Internal(format!(
                         "Attempt to access unbound variable {:?}",
                         i
                     )))?;

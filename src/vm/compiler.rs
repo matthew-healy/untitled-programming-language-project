@@ -13,14 +13,12 @@ impl Compiler {
     }
 
     fn for_closure() -> Self {
-        let mut code = Vec::new();
-        code.push(Op::Return());
+        let code = vec![Op::Return()];
         Compiler { code }
     }
 
     fn for_branch() -> Self {
-        let mut code = Vec::new();
-        code.push(Op::Join());
+        let code = vec![Op::Join()];
         Compiler { code }
     }
 

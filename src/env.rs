@@ -51,6 +51,12 @@ impl<T: Clone + core::fmt::Debug> Env<T> {
     }
 }
 
+impl<T> Default for Env<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T> Env<T> {
     /// Create a new (empty) environment.
     pub fn new() -> Self {
