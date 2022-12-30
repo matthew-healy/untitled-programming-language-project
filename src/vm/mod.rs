@@ -1,5 +1,3 @@
-// use std::collections::HashMap;
-
 use std::mem;
 
 use crate::{ast::BinaryOp, env::Env, error::EvaluationError, values::Val};
