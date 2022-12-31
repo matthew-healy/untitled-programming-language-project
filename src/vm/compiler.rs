@@ -2,24 +2,39 @@ use crate::ast::Expr;
 
 use super::Op;
 
+enum CompilerMode {
+    Normal,
+    Tail
+}
+
+// Compilation scheme inspired by ZAM
+// see here: https://xavierleroy.org/mpri/2-4/machines.2up.pdf
 pub struct Compiler {
+    mode: CompilerMode,
     code: Vec<Op>,
 }
 
 impl Compiler {
     pub fn new() -> Self {
+        let mode = CompilerMode::Normal;
         let code = Vec::new();
-        Compiler { code }
+        Compiler { mode, code }
     }
 
-    fn for_closure() -> Self {
-        let code = vec![Op::Return()];
-        Compiler { code }
+    fn with_mode_and_ops<I: IntoIterator<Item=Op>>(mode: CompilerMode, i: I) -> Self {
+        let code = i.into_iter().collect();
+        Compiler { mode, code }
+    }
+
+    fn for_tail() -> Self {
+        Self::with_mode_and_ops(CompilerMode::Tail, None)
     }
 
     fn for_branch() -> Self {
-        let code = vec![Op::Join()];
-        Compiler { code }
+        Self::with_mode_and_ops(
+            CompilerMode::Normal,
+            Some(Op::Join())
+        )
     }
 
     /// compiles the syntax tree to a "bytecode" representation.
@@ -29,26 +44,39 @@ impl Compiler {
     /// because most of the time we just pop the next instruction off, and
     /// popping from the tail of a vector is O(1).
     pub fn compile(mut self, e: &Expr) -> Vec<Op> {
-        self.push(e);
+        match self.mode {
+            CompilerMode::Normal => self.push(e),
+            CompilerMode::Tail => self.push_tail(e)
+        }
         self.code
     }
 
     fn push(&mut self, e: &Expr) {
         match e {
             Expr::App(fnc, a) => {
+                let code = std::mem::take(&mut self.code);
                 self.code.push(Op::Apply());
-                self.push(a);
                 self.push(fnc);
+                self.push(a);
+                self.code.push(Op::PushRetAddr(code));
             }
             Expr::Lambda(_, body) => {
-                let body_ops = Compiler::for_closure().compile(body);
-                self.code.push(Op::Closure(body_ops));
+                let mut code = Compiler::for_tail().compile(body);
+                code.push(Op::Grab());
+                self.code.push(Op::Closure(code));
             }
-            Expr::Let(binding, body) => {
+            Expr::Let(false, binding, body) => {
                 self.code.push(Op::EndLet());
                 self.push(body);
-                self.code.push(Op::Let());
+                self.code.push(Op::Grab());
                 self.push(binding);
+            }
+            Expr::Let(true, binding, body) => {
+                self.code.push(Op::EndLet());
+                self.push(body);
+                self.code.push(Op::Update());
+                self.push(binding);
+                self.code.push(Op::Dummy());
             }
             Expr::Literal(v) => self.code.push(Op::Const(v.clone())),
             Expr::IfThenElse(cond, thn, els) => {
@@ -64,6 +92,34 @@ impl Compiler {
             }
             Expr::Var(i) => {
                 self.code.push(Op::Access(*i));
+            }
+        }
+    }
+
+    fn push_tail(&mut self, e: &Expr) {
+        match e {
+            Expr::App(a, b) => {
+                self.push_tail(b);
+                self.push(a);
+            },
+            Expr::Lambda(_, a) => {
+                self.push_tail(a);
+                self.code.push(Op::Grab());
+            }
+            Expr::Let(false, a, b) => {
+                self.push_tail(b);
+                self.code.push(Op::Grab());
+                self.push(a);
+            },
+            Expr::Let(true, a, b) => {
+                self.push_tail(b);
+                self.code.push(Op::Update());
+                self.push(a);
+                self.code.push(Op::Dummy());
+            }
+            a => {
+                self.code.push(Op::Return());
+                self.push(a);
             }
         }
     }

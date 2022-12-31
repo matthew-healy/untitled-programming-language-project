@@ -1,11 +1,12 @@
-use std::fmt::Display;
+use std::{fmt::Display, cell::RefCell};
 
 use crate::{env::Env, error::EvaluationError, vm::Op};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Val {
     Bool(bool),
-    Closure { body: Vec<Op>, env: Env<Val> },
+    Closure { body: Vec<Op>, env: Env<RefCell<Val>> },
+    Dummy,
     Num(f64),
     Unit,
 }
@@ -15,6 +16,7 @@ impl Display for Val {
         match self {
             Val::Bool(b) => write!(f, "{}", b),
             Val::Closure { .. } => write!(f, "<function>"),
+            Val::Dummy => write!(f, "<dummy>"),
             Val::Num(n) => write!(f, "{}", n),
             Val::Unit => write!(f, "()"),
         }

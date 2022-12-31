@@ -1,4 +1,4 @@
-use std::mem;
+use std::{mem, cell::RefCell};
 
 use crate::{ast::BinaryOp, env::Env, error::EvaluationError, values::Val};
 
@@ -16,16 +16,19 @@ pub enum Op {
     Binary(BinaryOp),
     Closure(Vec<Op>),
     Const(Val),
-    Let(),
+    Dummy(),
     EndLet(),
+    Grab(),
+    Join(),
+    PushRetAddr(Vec<Op>),
     Return(),
     Sel(Vec<Op>, Vec<Op>),
-    Join(),
+    Update(),
 }
 
 pub struct VirtualMachine {
     code: Vec<Op>,
-    env: Env<Val>,
+    env: Env<RefCell<Val>>,
     stack: Stack<Marker>,
 }
 
@@ -44,19 +47,12 @@ impl VirtualMachine {
                         "Attempt to access unbound variable {:?}",
                         i
                     )))?;
-                    self.stack.push(Marker::Val(v));
+                    self.stack.push(Marker::Val(v.into_inner()));
                 }
                 Op::Apply() => {
-                    let arg = self.stack.force_pop_val()?;
-                    let (fn_body, mut fn_env) = self.stack.force_pop_closure()?;
-                    fn_env.bind(arg);
-
-                    let prev_code = mem::replace(&mut self.code, fn_body);
-                    let prev_env = self.env.clone();
+                    let (fn_body, fn_env) = self.stack.force_pop_closure()?;
+                    self.code = fn_body;
                     self.env = fn_env;
-
-                    self.stack.push(Marker::Env(prev_env));
-                    self.stack.push(Marker::Code(prev_code));
                 }
                 Op::Binary(op) => {
                     let r = self.stack.force_pop_val()?;
@@ -92,26 +88,37 @@ impl VirtualMachine {
 
                     self.stack.push(Marker::Val(res));
                 }
-                Op::Closure(body) => self.stack.push(Marker::Val(Val::Closure {
-                    body,
-                    env: self.env.clone(),
-                })),
-                Op::Const(v) => self.stack.push(Marker::Val(v)),
-                Op::EndLet() => self.env.unbind(),
-                Op::Let() => {
-                    let v = self.stack.force_pop_val()?;
-                    self.env.bind(v);
-                }
+                Op::Closure(body) => {
+                    self.stack.push(Marker::Val(Val::Closure {
+                        body,
+                        env: self.env.clone(),
+                    }))
+                },
+                Op::Const(v) => {
+                    self.stack.push(Marker::Val(v))
+                },
+                Op::Dummy() => {
+                    self.env.bind(RefCell::new(Val::Dummy))
+                },
+                Op::EndLet() => {
+                    self.env.unbind()
+                },
                 Op::Return() => {
-                    let ret_val = self.stack.force_pop_val()?;
+                    if self.stack.peek_closure().is_some() {
+                        let (fn_body, fn_env) = self.stack.force_pop_closure()?;
+                        self.code = fn_body;
+                        self.env = fn_env;
+                    } else {
+                        let v = self.stack.force_pop_val()?;
+                        self.stack.force_pop_app_delim()?;
+                        let code = self.stack.force_pop_code()?;
+                        let env = self.stack.force_pop_env()?;
 
-                    let code = self.stack.force_pop_code()?;
-                    let env = self.stack.force_pop_env()?;
+                        self.code = code;
+                        self.env = env;
 
-                    self.code = code;
-                    self.env = env;
-
-                    self.stack.push(Marker::Val(ret_val));
+                        self.stack.push(Marker::Val(v));
+                    }
                 }
                 Op::Sel(thn, els) => {
                     let cond = self.stack.force_pop_bool()?;
@@ -129,6 +136,33 @@ impl VirtualMachine {
 
                     self.stack.push(Marker::Val(ret_val));
                 }
+                Op::Grab() => {
+                    if self.stack.peek_value().is_some() {
+                        let val = self.stack.force_pop_val()?;
+                        self.env.bind(RefCell::new(val));
+                    } else {
+                        self.stack.force_pop_app_delim()?;
+                        let code = self.stack.force_pop_code()?;
+                        let env = self.stack.force_pop_env()?;
+
+                        let mut old_code = mem::replace(&mut self.code, code);
+                        let old_env = mem::replace(&mut self.env, env);
+
+                        old_code.push(Op::Grab());
+
+                        self.stack.push(Marker::Val(Val::Closure { body: old_code, env: old_env }))
+                    }
+                },
+                Op::PushRetAddr(c) => {
+                    self.stack.push(Marker::Env(self.env.clone()));
+                    self.stack.push(Marker::Code(c));
+                    self.stack.push(Marker::AppDelim);
+                },
+                Op::Update() => {
+                    let val = self.stack.force_pop_val()?;
+                    self.env.unbind();
+                    self.env.update_first_match(val, |v| matches!(v, Val::Dummy));
+                }
             }
         }
 
@@ -144,8 +178,9 @@ impl VirtualMachine {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Marker {
+    AppDelim,
     Code(Vec<Op>),
-    Env(Env<Val>),
+    Env(Env<RefCell<Val>>),
     Val(Val),
 }
 
@@ -159,6 +194,16 @@ impl Stack<Marker> {
         }
     }
 
+    fn force_pop_app_delim(&mut self) -> Result<(), EvaluationError> {
+        match self.force_pop()? {
+            Marker::AppDelim => Ok(()),
+            m => Err(EvaluationError::Internal(format!(
+                "Expected AppDelim but got {:?}",
+                m
+            )))
+        }
+    }
+
     fn force_pop_code(&mut self) -> Result<Vec<Op>, EvaluationError> {
         match self.force_pop()? {
             Marker::Code(c) => Ok(c),
@@ -169,7 +214,7 @@ impl Stack<Marker> {
         }
     }
 
-    fn force_pop_env(&mut self) -> Result<Env<Val>, EvaluationError> {
+    fn force_pop_env(&mut self) -> Result<Env<RefCell<Val>>, EvaluationError> {
         match self.force_pop()? {
             Marker::Env(e) => Ok(e),
             m => Err(EvaluationError::Internal(format!(
@@ -199,13 +244,27 @@ impl Stack<Marker> {
         }
     }
 
-    fn force_pop_closure(&mut self) -> Result<(Vec<Op>, Env<Val>), EvaluationError> {
+    fn force_pop_closure(&mut self) -> Result<(Vec<Op>, Env<RefCell<Val>>), EvaluationError> {
         match self.force_pop_val()? {
             Val::Closure { body, env } => Ok((body, env)),
             m => Err(EvaluationError::Internal(format!(
                 "Expected closure but got {:?}",
                 m
             ))),
+        }
+    }
+
+    fn peek_closure(&self) -> Option<(&Vec<Op>, &Env<RefCell<Val>>)> {
+        match self.peek_value() {
+            Some(Val::Closure { body, env }) => Some((body, env)),
+            _ => None,
+        }
+    }
+
+    fn peek_value(&self) -> Option<&Val> {
+        match self.peek() {
+            Some(Marker::Val(m)) => Some(m),
+            _ => None
         }
     }
 }

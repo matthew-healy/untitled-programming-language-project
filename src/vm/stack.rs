@@ -13,6 +13,10 @@ impl<T> Stack<T> {
     pub fn pop(&mut self) -> Option<T> {
         self.0.pop()
     }
+
+    pub fn peek(&self) -> Option<&T> {
+        self.0.last()
+    }
 }
 
 impl<T: PartialEq> PartialEq for Stack<T> {
