@@ -1,9 +1,28 @@
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Stack<T>(Vec<T>);
+
+impl<T> Default for Stack<T> {
+    fn default() -> Self {
+        Stack::new()
+    }
+}
+
+impl<T: std::fmt::Debug> std::fmt::Debug for Stack<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let stacked = self.0.iter().rev().collect::<Vec<_>>();
+        f.debug_tuple("Stack").field(&stacked).finish()
+    }
+}
 
 impl<T> Stack<T> {
     pub fn new() -> Stack<T> {
         Stack(vec![])
+    }
+
+    /// Creates a Stack from a Vec which is already "stacked".
+    /// i.e., the "first element" conceptually is at the end of the Vec.
+    pub fn from_stacked_vec(v: Vec<T>) -> Stack<T> {
+        Stack(v)
     }
 
     pub fn push(&mut self, value: T) {
@@ -11,7 +30,12 @@ impl<T> Stack<T> {
     }
 
     pub fn pop(&mut self) -> Option<T> {
-        self.0.pop()
+        let p = self.0.pop();
+        p
+    }
+
+    pub fn peek(&self) -> Option<&T> {
+        self.0.last()
     }
 }
 

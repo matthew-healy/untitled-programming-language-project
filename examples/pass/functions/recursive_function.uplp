@@ -1,2 +1,0 @@
--- test: skip
-let fib = |n: Num| if n == 0 then 0 else n + fib (n - 1)

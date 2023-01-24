@@ -11,7 +11,8 @@ pub Uplp = Expr;
 
 Expr: Box<RawExpr> = {
     InfixExpr,
-    "let" <Ident> "=" <Expr> "in" <Expr> => Box::new(RawExpr::Let(<>)),
+    "let" <rec: "rec"?> <ident: Ident> "=" <bnd: Expr> "in" <body: Expr> =>
+        Box::new(RawExpr::Let(rec.is_some(), ident, bnd, body)),
     "|" <Ident> ":" <Type> "|" <Expr> => Box::new(RawExpr::Lambda(<>)),
     "if" <Expr> "then" <Expr> "else" <Expr> => Box::new(RawExpr::IfThenElse(<>)),
 }
