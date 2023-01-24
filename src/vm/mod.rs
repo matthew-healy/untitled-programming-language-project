@@ -3,7 +3,7 @@ use std::{mem, cell::RefCell};
 use crate::{ast::BinaryOp, env::Env, error::EvaluationError, values::Val};
 
 mod compiler;
-mod stack;
+pub mod stack;
 
 use self::stack::Stack;
 pub use compiler::Compiler;
@@ -14,26 +14,26 @@ pub enum Op {
     Access(usize),
     Apply(),
     Binary(BinaryOp),
-    Closure(Vec<Op>),
+    Closure(Stack<Op>),
     Const(Val),
     Dummy(),
     EndLet(),
     Grab(),
     Join(),
-    PushRetAddr(Vec<Op>),
+    PushRetAddr(Stack<Op>),
     Return(),
-    Sel(Vec<Op>, Vec<Op>),
+    Sel(Stack<Op>, Stack<Op>),
     Update(),
 }
 
 pub struct VirtualMachine {
-    code: Vec<Op>,
+    code: Stack<Op>,
     env: Env<RefCell<Val>>,
     stack: Stack<Marker>,
 }
 
 impl VirtualMachine {
-    pub fn new(code: Vec<Op>) -> Self {
+    pub fn new(code: Stack<Op>) -> Self {
         let env = Env::new();
         let stack = Stack::new();
         VirtualMachine { code, env, stack }
@@ -160,7 +160,6 @@ impl VirtualMachine {
                 },
                 Op::Update() => {
                     let val = self.stack.force_pop_val()?;
-                    self.env.unbind();
                     self.env.update_first_match(val, |v| matches!(v, Val::Dummy));
                 }
             }
@@ -179,7 +178,7 @@ impl VirtualMachine {
 #[derive(Clone, Debug, PartialEq)]
 pub enum Marker {
     AppDelim,
-    Code(Vec<Op>),
+    Code(Stack<Op>),
     Env(Env<RefCell<Val>>),
     Val(Val),
 }
@@ -187,7 +186,9 @@ pub enum Marker {
 impl Stack<Marker> {
     fn force_pop(&mut self) -> Result<Marker, EvaluationError> {
         match self.pop() {
-            Some(m) => Ok(m),
+            Some(m) => {
+                Ok(m)
+            }
             None => Err(EvaluationError::Internal(String::from(
                 "Attempt to pop from empty stack",
             ))),
@@ -196,15 +197,19 @@ impl Stack<Marker> {
 
     fn force_pop_app_delim(&mut self) -> Result<(), EvaluationError> {
         match self.force_pop()? {
-            Marker::AppDelim => Ok(()),
-            m => Err(EvaluationError::Internal(format!(
-                "Expected AppDelim but got {:?}",
-                m
-            )))
+            Marker::AppDelim => {
+                Ok(())
+            }
+            _ => {
+                Err(EvaluationError::Internal(format!(
+                    "Expected AppDelim but got something else",
+                    // m
+                )))
+            }
         }
     }
 
-    fn force_pop_code(&mut self) -> Result<Vec<Op>, EvaluationError> {
+    fn force_pop_code(&mut self) -> Result<Stack<Op>, EvaluationError> {
         match self.force_pop()? {
             Marker::Code(c) => Ok(c),
             m => Err(EvaluationError::Internal(format!(
@@ -244,7 +249,7 @@ impl Stack<Marker> {
         }
     }
 
-    fn force_pop_closure(&mut self) -> Result<(Vec<Op>, Env<RefCell<Val>>), EvaluationError> {
+    fn force_pop_closure(&mut self) -> Result<(Stack<Op>, Env<RefCell<Val>>), EvaluationError> {
         match self.force_pop_val()? {
             Val::Closure { body, env } => Ok((body, env)),
             m => Err(EvaluationError::Internal(format!(
@@ -254,7 +259,7 @@ impl Stack<Marker> {
         }
     }
 
-    fn peek_closure(&self) -> Option<(&Vec<Op>, &Env<RefCell<Val>>)> {
+    fn peek_closure(&self) -> Option<(&Stack<Op>, &Env<RefCell<Val>>)> {
         match self.peek_value() {
             Some(Val::Closure { body, env }) => Some((body, env)),
             _ => None,

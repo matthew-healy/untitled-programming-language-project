@@ -87,8 +87,6 @@ impl<T> Env<T> {
         // we calculate what the index of n would be were it in the current
         // layer, using checked arithmetic. if we get None, then we underflowed
         // so we need to check the next layer.
-        // let current_len = self.current.borrow().len();
-        // let poss_idx = current_len.checked_sub(1).and_then(|i| i.checked_sub(n));
         let current_len = self.current.borrow().len();
         let poss_idx = current_len.checked_sub(1).and_then(|i| i.checked_sub(n));
         if let Some(idx) = poss_idx {

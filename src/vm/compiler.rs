@@ -1,6 +1,6 @@
 use crate::ast::Expr;
 
-use super::Op;
+use super::{Op, stack::Stack};
 
 enum CompilerMode {
     Normal,
@@ -11,18 +11,19 @@ enum CompilerMode {
 // see here: https://xavierleroy.org/mpri/2-4/machines.2up.pdf
 pub struct Compiler {
     mode: CompilerMode,
-    code: Vec<Op>,
+    code: Stack<Op>,
 }
 
 impl Compiler {
     pub fn new() -> Self {
         let mode = CompilerMode::Normal;
-        let code = Vec::new();
+        let code = Stack::new();
         Compiler { mode, code }
     }
 
     fn with_mode_and_ops<I: IntoIterator<Item=Op>>(mode: CompilerMode, i: I) -> Self {
-        let code = i.into_iter().collect();
+        let code: Vec<Op> = i.into_iter().collect();
+        let code = Stack::from_stacked_vec(code);
         Compiler { mode, code }
     }
 
@@ -43,7 +44,7 @@ impl Compiler {
     /// element of the vector is the first instruction to be computed. this is
     /// because most of the time we just pop the next instruction off, and
     /// popping from the tail of a vector is O(1).
-    pub fn compile(mut self, e: &Expr) -> Vec<Op> {
+    pub fn compile(mut self, e: &Expr) -> Stack<Op> {
         match self.mode {
             CompilerMode::Normal => self.push(e),
             CompilerMode::Tail => self.push_tail(e)
@@ -99,8 +100,8 @@ impl Compiler {
     fn push_tail(&mut self, e: &Expr) {
         match e {
             Expr::App(a, b) => {
-                self.push_tail(b);
-                self.push(a);
+                self.push_tail(a);
+                self.push(b);
             },
             Expr::Lambda(_, a) => {
                 self.push_tail(a);
