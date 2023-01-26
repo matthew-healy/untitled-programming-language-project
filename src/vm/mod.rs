@@ -194,12 +194,9 @@ impl Stack<Marker> {
     fn force_pop_app_delim(&mut self) -> Result<(), EvaluationError> {
         match self.force_pop()? {
             Marker::AppDelim => Ok(()),
-            _ => {
-                Err(EvaluationError::Internal(format!(
-                    "Expected AppDelim but got something else",
-                    // m
-                )))
-            }
+            _ => Err(EvaluationError::Internal(
+                "Expected AppDelim but got something else".to_owned(),
+            )),
         }
     }
 
