@@ -17,10 +17,10 @@ impl ScopeChecker {
 impl ScopeChecker {
     pub fn check(&mut self, raw_expr: RawExpr) -> Result<Expr, Error> {
         match raw_expr {
-            RawExpr::App(fnc, a) => {
+            RawExpr::App(fnc, args) => {
                 let fnc = self.check(*fnc)?;
-                let a = self.check(*a)?;
-                Ok(Expr::App(Box::new(fnc), Box::new(a)))
+                let args = args.into_iter().map(|a| self.check(a)).collect::<Result<_, _>>()?;
+                Ok(Expr::App(Box::new(fnc), args))
             }
             RawExpr::Lambda(args, body) => {
                 let (ids, tys): (Vec<_>, Vec<_>) = args.into_iter().unzip();

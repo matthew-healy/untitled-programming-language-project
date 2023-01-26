@@ -15,6 +15,20 @@ pub enum Type {
     UnificationVar(usize),
 }
 
+impl Type {
+    fn applied_to_args(self, n_args: usize) -> Result<Type, TypeError> {
+        if n_args == 0 {
+            Ok(self)
+        } else {
+            match self {
+                Type::Arrow(_, out_ty) => out_ty.applied_to_args(n_args - 1),
+                _ => Err(TypeError::BadApplication),
+            }
+        }
+
+    }
+}
+
 pub(crate) struct TypeChecker {
     typing_env: Env<Type>,
     next_unif_var: usize,
@@ -33,23 +47,21 @@ impl TypeChecker {
         use Expr::*;
 
         match e {
-            App(fnc, a) => {
+            App(fnc, args) => {
+                // `fn_ty` is the inferred type of the function itself, based
+                // on its body.
+                // e.g. fn_ty = A_1 -> ... -> A_n
                 let fn_ty = self.infer(fnc)?;
-                let a_ty = self.infer(a)?;
+                // `arg_ty` is the inferred type of `fnc` based on the types of
+                // the arguments we can see.
+                // e.g. arg_ty = A_1 -> ... -> A_(n - m) -> UVar
+                let arg_ty = args.iter().rev().try_fold(self.new_unif_var(), |acc, nxt| {
+                    let nxt_ty = self.infer(nxt)?;
+                    Ok(Type::Arrow(Box::new(nxt_ty), Box::new(acc)))
+                })?;
+                let resolved_ty = self.unify(fn_ty, arg_ty)?;
 
-                let in_var = self.new_unif_var();
-                let out_var = self.new_unif_var();
-                let fn_ty = self.unify(fn_ty, Type::Arrow(Box::new(in_var), Box::new(out_var)))?;
-
-                match fn_ty {
-                    Type::Arrow(in_ty, out_ty) => {
-                        self.unify(*in_ty, a_ty)?;
-                        Ok(*out_ty)
-                    }
-                    _ => {
-                        Err(TypeError::Mismatch)
-                    }
-                }
+                resolved_ty.applied_to_args(args.len())
             }
             Lambda(tys, body) => {
                 for t in tys {

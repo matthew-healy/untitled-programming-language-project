@@ -54,11 +54,13 @@ impl Compiler {
 
     fn push(&mut self, e: &Expr) {
         match e {
-            Expr::App(fnc, a) => {
+            Expr::App(fnc, args) => {
                 let code = std::mem::take(&mut self.code);
                 self.code.push(Op::Apply());
                 self.push(fnc);
-                self.push(a);
+                for a in args {
+                    self.push(a);
+                }
                 self.code.push(Op::PushRetAddr(code));
             }
             Expr::Lambda(ts, body) => {
@@ -101,9 +103,11 @@ impl Compiler {
 
     fn push_tail(&mut self, e: &Expr) {
         match e {
-            Expr::App(a, b) => {
-                self.push_tail(a);
-                self.push(b);
+            Expr::App(f, args) => {
+                self.push_tail(f);
+                for a in args {
+                    self.push(a);
+                }
             },
             Expr::Lambda(_, a) => {
                 self.push_tail(a);

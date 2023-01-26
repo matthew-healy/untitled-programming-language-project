@@ -4,7 +4,7 @@ use crate::{types::Type, values::Val};
 
 #[derive(PartialEq)]
 pub enum RawExpr {
-    App(Box<RawExpr>, Box<RawExpr>),
+    App(Box<RawExpr>, Vec<RawExpr>),
     Lambda(Vec<(RawIdent, Type)>, Box<RawExpr>),
     Let(bool, RawIdent, Box<RawExpr>, Box<RawExpr>),
     Literal(Val),
@@ -37,7 +37,7 @@ impl Debug for RawExpr {
 
 #[derive(PartialEq)]
 pub enum Expr {
-    App(Box<Expr>, Box<Expr>),
+    App(Box<Expr>, Vec<Expr>),
     Lambda(Vec<Type>, Box<Expr>),
     Let(bool, Box<Expr>, Box<Expr>),
     Literal(Val),

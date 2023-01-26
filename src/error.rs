@@ -81,6 +81,7 @@ impl<'src> From<LalrpopError<'src>> for ParseError {
 #[derive(Debug, PartialEq, Eq)]
 pub enum TypeError {
     Mismatch,
+    BadApplication,
 }
 
 impl From<TypeError> for Error {
