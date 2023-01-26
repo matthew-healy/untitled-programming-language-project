@@ -25,7 +25,6 @@ impl Type {
                 _ => Err(TypeError::BadApplication),
             }
         }
-
     }
 }
 
@@ -40,7 +39,11 @@ impl TypeChecker {
         let typing_env = Env::new();
         let next_unif_var = 0;
         let unif_table = Default::default();
-        TypeChecker { typing_env, next_unif_var, unif_table }
+        TypeChecker {
+            typing_env,
+            next_unif_var,
+            unif_table,
+        }
     }
 
     pub(crate) fn infer(&mut self, e: &Expr) -> Result<Type, TypeError> {
@@ -55,10 +58,13 @@ impl TypeChecker {
                 // `arg_ty` is the inferred type of `fnc` based on the types of
                 // the arguments we can see.
                 // e.g. arg_ty = A_1 -> ... -> A_(n - m) -> UVar
-                let arg_ty = args.iter().rev().try_fold(self.new_unif_var(), |acc, nxt| {
-                    let nxt_ty = self.infer(nxt)?;
-                    Ok(Type::Arrow(Box::new(nxt_ty), Box::new(acc)))
-                })?;
+                let arg_ty = args
+                    .iter()
+                    .rev()
+                    .try_fold(self.new_unif_var(), |acc, nxt| {
+                        let nxt_ty = self.infer(nxt)?;
+                        Ok(Type::Arrow(Box::new(nxt_ty), Box::new(acc)))
+                    })?;
                 let resolved_ty = self.unify(fn_ty, arg_ty)?;
 
                 resolved_ty.applied_to_args(args.len())
@@ -112,12 +118,12 @@ impl TypeChecker {
                         self.unify(l_ty, Type::Bool)?;
                         self.unify(r_ty, Type::Bool)?;
                         Ok(Type::Bool)
-                    },
+                    }
                     _ => {
                         self.unify(l_ty, Type::Num)?;
                         self.unify(r_ty, Type::Num)?;
                         Ok(Type::Num)
-                    },
+                    }
                 }
             }
             Var(i) => Ok(self
@@ -140,8 +146,12 @@ impl TypeChecker {
                 let from = self.unify(*from1, *from2)?;
                 let to = self.unify(*to1, *to2)?;
                 Ok(Type::Arrow(Box::new(from), Box::new(to)))
-            },
-            (Type::UnificationVar(n), Type::UnificationVar(m)) if !self.unif_table.contains_key(&n) && !self.unif_table.contains_key(&m) => Ok(Type::UnificationVar(n)),
+            }
+            (Type::UnificationVar(n), Type::UnificationVar(m))
+                if !self.unif_table.contains_key(&n) && !self.unif_table.contains_key(&m) =>
+            {
+                Ok(Type::UnificationVar(n))
+            }
             (t, Type::UnificationVar(n)) | (Type::UnificationVar(n), t) => {
                 match self.unif_table.get(&n) {
                     None => {
@@ -150,10 +160,8 @@ impl TypeChecker {
                     }
                     Some(t1) => self.unify(t, t1.clone()),
                 }
-            },
-            _ => {
-                Err(TypeError::Mismatch)
             }
+            _ => Err(TypeError::Mismatch),
         }
     }
 }

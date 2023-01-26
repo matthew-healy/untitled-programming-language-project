@@ -1,10 +1,10 @@
 use crate::ast::Expr;
 
-use super::{Op, stack::Stack};
+use super::{stack::Stack, Op};
 
 enum CompilerMode {
     Normal,
-    Tail
+    Tail,
 }
 
 // Compilation scheme inspired by ZAM
@@ -21,7 +21,7 @@ impl Compiler {
         Compiler { mode, code }
     }
 
-    fn with_mode_and_ops<I: IntoIterator<Item=Op>>(mode: CompilerMode, i: I) -> Self {
+    fn with_mode_and_ops<I: IntoIterator<Item = Op>>(mode: CompilerMode, i: I) -> Self {
         let code: Vec<Op> = i.into_iter().collect();
         let code = Stack::from_stacked_vec(code);
         Compiler { mode, code }
@@ -32,10 +32,7 @@ impl Compiler {
     }
 
     fn for_branch() -> Self {
-        Self::with_mode_and_ops(
-            CompilerMode::Normal,
-            Some(Op::Join())
-        )
+        Self::with_mode_and_ops(CompilerMode::Normal, Some(Op::Join()))
     }
 
     /// compiles the syntax tree to a "bytecode" representation.
@@ -47,7 +44,7 @@ impl Compiler {
     pub fn compile(mut self, e: &Expr) -> Stack<Op> {
         match self.mode {
             CompilerMode::Normal => self.push(e),
-            CompilerMode::Tail => self.push_tail(e)
+            CompilerMode::Tail => self.push_tail(e),
         }
         self.code
     }
@@ -108,7 +105,7 @@ impl Compiler {
                 for a in args {
                     self.push(a);
                 }
-            },
+            }
             Expr::Lambda(_, a) => {
                 self.push_tail(a);
                 self.code.push(Op::Grab());
@@ -117,7 +114,7 @@ impl Compiler {
                 self.push_tail(b);
                 self.code.push(Op::Grab());
                 self.push(a);
-            },
+            }
             Expr::Let(true, a, b) => {
                 self.push_tail(b);
                 self.code.push(Op::Update());

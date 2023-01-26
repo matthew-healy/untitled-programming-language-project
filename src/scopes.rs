@@ -19,7 +19,10 @@ impl ScopeChecker {
         match raw_expr {
             RawExpr::App(fnc, args) => {
                 let fnc = self.check(*fnc)?;
-                let args = args.into_iter().map(|a| self.check(a)).collect::<Result<_, _>>()?;
+                let args = args
+                    .into_iter()
+                    .map(|a| self.check(a))
+                    .collect::<Result<_, _>>()?;
                 Ok(Expr::App(Box::new(fnc), args))
             }
             RawExpr::Lambda(args, body) => {
