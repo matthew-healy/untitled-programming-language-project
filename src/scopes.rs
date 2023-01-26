@@ -22,11 +22,16 @@ impl ScopeChecker {
                 let a = self.check(*a)?;
                 Ok(Expr::App(Box::new(fnc), Box::new(a)))
             }
-            RawExpr::Lambda(ident, ty, body) => {
-                self.idents.push(ident);
+            RawExpr::Lambda(args, body) => {
+                let (ids, tys): (Vec<_>, Vec<_>) = args.into_iter().unzip();
+                for id in ids {
+                    self.idents.push(id);
+                }
                 let body = Box::new(self.check(*body)?);
-                self.idents.pop();
-                Ok(Expr::Lambda(Some(ty), body))
+                for _ in 0..tys.len() {
+                    self.idents.pop();
+                }
+                Ok(Expr::Lambda(tys, body))
             }
             RawExpr::Let(false, ident, binding, body) => {
                 let binding = Box::new(self.check(*binding)?);

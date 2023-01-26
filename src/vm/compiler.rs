@@ -61,9 +61,11 @@ impl Compiler {
                 self.push(a);
                 self.code.push(Op::PushRetAddr(code));
             }
-            Expr::Lambda(_, body) => {
+            Expr::Lambda(ts, body) => {
                 let mut code = Compiler::for_tail().compile(body);
-                code.push(Op::Grab());
+                ts.iter().for_each(|_| {
+                    code.push(Op::Grab());
+                });
                 self.code.push(Op::Closure(code));
             }
             Expr::Let(false, binding, body) => {

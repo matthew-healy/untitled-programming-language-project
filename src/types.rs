@@ -51,16 +51,20 @@ impl TypeChecker {
                     }
                 }
             }
-            Lambda(Some(ty), body) => {
-                self.typing_env.bind(ty.clone());
+            Lambda(tys, body) => {
+                for t in tys {
+                    self.typing_env.bind(t.clone());
+                }
                 let ret_ty = self.infer(body)?;
-                self.typing_env.unbind();
-                Ok(Type::Arrow(Box::new(ty.clone()), Box::new(ret_ty)))
-            }
-            Lambda(None, body) => {
-                let unif_var = self.new_unif_var();
-                self.typing_env.bind(unif_var);
-                self.infer(body)
+                for _ in 0..tys.len() {
+                    self.typing_env.unbind();
+                }
+
+                let tys = tys.iter().rev().fold(ret_ty, |acc, nxt| {
+                    Type::Arrow(Box::new(nxt.clone()), Box::new(acc))
+                });
+
+                Ok(tys)
             }
             Let(false, binding, body) => {
                 let binding_ty = self.infer(binding)?;

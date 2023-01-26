@@ -1,9 +1,10 @@
 -- test: check { "type": "Num", "value": 3628800 }
 
-let rec fact_rec = |n: Num| |acc: Num| 
-  if n == 0 then acc
-  else fact_rec (n - 1) (acc * n) in
-
-let fact = |n: Num| fact_rec n 1 in
+let fact = |n: Num|
+  let rec fact_rec = |n: Num, acc: Num|
+    if n == 0 then acc
+    else fact_rec (n - 1) (acc * n)
+  in fact_rec n 1
+in
 
 fact 10
