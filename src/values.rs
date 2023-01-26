@@ -1,11 +1,18 @@
-use std::{fmt::Display, cell::RefCell};
+use std::{cell::RefCell, fmt::Display};
 
-use crate::{env::Env, error::EvaluationError, vm::{stack::Stack, Op}};
+use crate::{
+    env::Env,
+    error::EvaluationError,
+    vm::{stack::Stack, Op},
+};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Val {
     Bool(bool),
-    Closure { body: Stack<Op>, env: Env<RefCell<Val>> },
+    Closure {
+        body: Stack<Op>,
+        env: Env<RefCell<Val>>,
+    },
     Dummy,
     Num(f64),
     Unit,

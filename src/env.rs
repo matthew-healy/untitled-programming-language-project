@@ -29,9 +29,7 @@ impl<T> Clone for Env<T> {
 
 impl<T: Clone> Env<T> {
     pub fn lookup(&self, n: usize) -> Option<T> {
-        self.do_at_position(n, |t| {
-            t.clone()
-        })
+        self.do_at_position(n, |t| t.clone())
     }
 }
 
@@ -78,7 +76,10 @@ impl<T> Env<T> {
         })
     }
 
-    fn do_at_position<F, U>(&self, n: usize, f: F) -> Option<U> where F: FnOnce(&mut T) -> U {
+    fn do_at_position<F, U>(&self, n: usize, f: F) -> Option<U>
+    where
+        F: FnOnce(&mut T) -> U,
+    {
         // n is the de Bruijn index of the variable, which means we need to
         // count backwards from the end of the environment. for example,
         // if n is 1, we need to take the second-to-last element.
@@ -102,7 +103,7 @@ impl<T> Env<T> {
     }
 }
 
-impl <T: Clone> Env<RefCell<T>> {
+impl<T: Clone> Env<RefCell<T>> {
     pub fn update_first_match(&mut self, new_val: T, pred: impl Fn(&T) -> bool) {
         let pos = self.position_of_first_match(&|r| pred(&r.borrow()));
         if let Some(pos) = pos {

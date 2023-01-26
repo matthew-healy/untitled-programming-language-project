@@ -1,10 +1,10 @@
 use crate::ast::Expr;
 
-use super::{Op, stack::Stack};
+use super::{stack::Stack, Op};
 
 enum CompilerMode {
     Normal,
-    Tail
+    Tail,
 }
 
 // Compilation scheme inspired by ZAM
@@ -21,7 +21,7 @@ impl Compiler {
         Compiler { mode, code }
     }
 
-    fn with_mode_and_ops<I: IntoIterator<Item=Op>>(mode: CompilerMode, i: I) -> Self {
+    fn with_mode_and_ops<I: IntoIterator<Item = Op>>(mode: CompilerMode, i: I) -> Self {
         let code: Vec<Op> = i.into_iter().collect();
         let code = Stack::from_stacked_vec(code);
         Compiler { mode, code }
@@ -32,10 +32,7 @@ impl Compiler {
     }
 
     fn for_branch() -> Self {
-        Self::with_mode_and_ops(
-            CompilerMode::Normal,
-            Some(Op::Join())
-        )
+        Self::with_mode_and_ops(CompilerMode::Normal, Some(Op::Join()))
     }
 
     /// compiles the syntax tree to a "bytecode" representation.
@@ -47,23 +44,27 @@ impl Compiler {
     pub fn compile(mut self, e: &Expr) -> Stack<Op> {
         match self.mode {
             CompilerMode::Normal => self.push(e),
-            CompilerMode::Tail => self.push_tail(e)
+            CompilerMode::Tail => self.push_tail(e),
         }
         self.code
     }
 
     fn push(&mut self, e: &Expr) {
         match e {
-            Expr::App(fnc, a) => {
+            Expr::App(fnc, args) => {
                 let code = std::mem::take(&mut self.code);
                 self.code.push(Op::Apply());
                 self.push(fnc);
-                self.push(a);
+                for a in args {
+                    self.push(a);
+                }
                 self.code.push(Op::PushRetAddr(code));
             }
-            Expr::Lambda(_, body) => {
+            Expr::Lambda(ts, body) => {
                 let mut code = Compiler::for_tail().compile(body);
-                code.push(Op::Grab());
+                ts.iter().for_each(|_| {
+                    code.push(Op::Grab());
+                });
                 self.code.push(Op::Closure(code));
             }
             Expr::Let(false, binding, body) => {
@@ -99,10 +100,12 @@ impl Compiler {
 
     fn push_tail(&mut self, e: &Expr) {
         match e {
-            Expr::App(a, b) => {
-                self.push_tail(a);
-                self.push(b);
-            },
+            Expr::App(f, args) => {
+                self.push_tail(f);
+                for a in args {
+                    self.push(a);
+                }
+            }
             Expr::Lambda(_, a) => {
                 self.push_tail(a);
                 self.code.push(Op::Grab());
@@ -111,7 +114,7 @@ impl Compiler {
                 self.push_tail(b);
                 self.code.push(Op::Grab());
                 self.push(a);
-            },
+            }
             Expr::Let(true, a, b) => {
                 self.push_tail(b);
                 self.code.push(Op::Update());

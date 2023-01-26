@@ -13,9 +13,23 @@ Expr: Box<RawExpr> = {
     InfixExpr,
     "let" <rec: "rec"?> <ident: Ident> "=" <bnd: Expr> "in" <body: Expr> =>
         Box::new(RawExpr::Let(rec.is_some(), ident, bnd, body)),
-    "|" <Ident> ":" <Type> "|" <Expr> => Box::new(RawExpr::Lambda(<>)),
+    "|" <CommaSeparated<FnArg>> "|" <Expr> => Box::new(RawExpr::Lambda(<>)),
     "if" <Expr> "then" <Expr> "else" <Expr> => Box::new(RawExpr::IfThenElse(<>)),
 }
+
+FnArg: (RawIdent, Type) = {
+    <id: Ident> ":" <ty: Type> => (id, ty)
+}
+
+CommaSeparated<T>: Vec<T> = {
+    <mut v:(<T> ",")*> <e:T?> => match e {
+        None => v,
+        Some(e) => {
+            v.push(e);
+            v
+        }
+    }
+};
 
 InfixExpr: Box<RawExpr> = {
     #[precedence(level="0")]
@@ -39,7 +53,12 @@ InfixExpr: Box<RawExpr> = {
 }
 
 Applicative: Box<RawExpr> = {
-    Applicative Terminal => Box::new(RawExpr::App(<>)),
+    <f: Terminal> <args: (Terminal)+> => {
+        Box::new(RawExpr::App(
+            f,
+            args.into_iter().map(|a| *a).collect()
+        ))
+    },
     Terminal,
 }
 

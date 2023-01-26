@@ -1,4 +1,4 @@
-use std::{mem, cell::RefCell};
+use std::{cell::RefCell, mem};
 
 use crate::{ast::BinaryOp, env::Env, error::EvaluationError, values::Val};
 
@@ -43,10 +43,12 @@ impl VirtualMachine {
         while let Some(o) = self.code.pop() {
             match o {
                 Op::Access(i) => {
-                    let v = self.env.lookup(i).ok_or_else(|| EvaluationError::Internal(format!(
-                        "Attempt to access unbound variable {:?}",
-                        i
-                    )))?;
+                    let v = self.env.lookup(i).ok_or_else(|| {
+                        EvaluationError::Internal(format!(
+                            "Attempt to access unbound variable {:?}",
+                            i
+                        ))
+                    })?;
                     self.stack.push(Marker::Val(v.into_inner()));
                 }
                 Op::Apply() => {
@@ -88,21 +90,13 @@ impl VirtualMachine {
 
                     self.stack.push(Marker::Val(res));
                 }
-                Op::Closure(body) => {
-                    self.stack.push(Marker::Val(Val::Closure {
-                        body,
-                        env: self.env.clone(),
-                    }))
-                },
-                Op::Const(v) => {
-                    self.stack.push(Marker::Val(v))
-                },
-                Op::Dummy() => {
-                    self.env.bind(RefCell::new(Val::Dummy))
-                },
-                Op::EndLet() => {
-                    self.env.unbind()
-                },
+                Op::Closure(body) => self.stack.push(Marker::Val(Val::Closure {
+                    body,
+                    env: self.env.clone(),
+                })),
+                Op::Const(v) => self.stack.push(Marker::Val(v)),
+                Op::Dummy() => self.env.bind(RefCell::new(Val::Dummy)),
+                Op::EndLet() => self.env.unbind(),
                 Op::Return() => {
                     if self.stack.peek_closure().is_some() {
                         let (fn_body, fn_env) = self.stack.force_pop_closure()?;
@@ -150,17 +144,21 @@ impl VirtualMachine {
 
                         old_code.push(Op::Grab());
 
-                        self.stack.push(Marker::Val(Val::Closure { body: old_code, env: old_env }))
+                        self.stack.push(Marker::Val(Val::Closure {
+                            body: old_code,
+                            env: old_env,
+                        }))
                     }
-                },
+                }
                 Op::PushRetAddr(c) => {
                     self.stack.push(Marker::Env(self.env.clone()));
                     self.stack.push(Marker::Code(c));
                     self.stack.push(Marker::AppDelim);
-                },
+                }
                 Op::Update() => {
                     let val = self.stack.force_pop_val()?;
-                    self.env.update_first_match(val, |v| matches!(v, Val::Dummy));
+                    self.env
+                        .update_first_match(val, |v| matches!(v, Val::Dummy));
                 }
             }
         }
@@ -186,9 +184,7 @@ pub enum Marker {
 impl Stack<Marker> {
     fn force_pop(&mut self) -> Result<Marker, EvaluationError> {
         match self.pop() {
-            Some(m) => {
-                Ok(m)
-            }
+            Some(m) => Ok(m),
             None => Err(EvaluationError::Internal(String::from(
                 "Attempt to pop from empty stack",
             ))),
@@ -197,15 +193,10 @@ impl Stack<Marker> {
 
     fn force_pop_app_delim(&mut self) -> Result<(), EvaluationError> {
         match self.force_pop()? {
-            Marker::AppDelim => {
-                Ok(())
-            }
-            _ => {
-                Err(EvaluationError::Internal(format!(
-                    "Expected AppDelim but got something else",
-                    // m
-                )))
-            }
+            Marker::AppDelim => Ok(()),
+            _ => Err(EvaluationError::Internal(
+                "Expected AppDelim but got something else".to_owned(),
+            )),
         }
     }
 
@@ -269,7 +260,7 @@ impl Stack<Marker> {
     fn peek_value(&self) -> Option<&Val> {
         match self.peek() {
             Some(Marker::Val(m)) => Some(m),
-            _ => None
+            _ => None,
         }
     }
 }

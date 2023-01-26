@@ -30,8 +30,7 @@ impl<T> Stack<T> {
     }
 
     pub fn pop(&mut self) -> Option<T> {
-        let p = self.0.pop();
-        p
+        self.0.pop()
     }
 
     pub fn peek(&self) -> Option<&T> {
