@@ -1,1 +1,2 @@
+-- test: fail { "category": "Parse.invalid_token", "metadata": { "loc": 0 } }
 ~

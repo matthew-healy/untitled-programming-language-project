@@ -16,7 +16,7 @@
 
         naersk' = pkgs.callPackage naersk {};
 
-      in rec {
+      in {
         defaultPackage = naersk'.buildPackage {
           src = ./.;
         };
@@ -24,6 +24,7 @@
         devShells.default = pkgs.mkShell {
           nativeBuildInputs = with pkgs; [
             rustc
+            rustfmt
             cargo
             rust-analyzer
           ];

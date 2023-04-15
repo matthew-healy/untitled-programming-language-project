@@ -18,9 +18,9 @@ lalrpop = "0.19.8"
 [dependencies]
 clap = { version = "4.0.17", features = ["derive"] }
 lalrpop-util = { version = "0.19.8", features = ["lexer"] }
+serde = { version = "1.0.150", features = ["derive"] }
+serde_json = "1.0.89"
 
 [dev-dependencies]
 quickcheck = "1.0.3"
 test-generator = "0.3.0"
-serde = { version = "1.0.150", features = ["derive"] }
-serde_json = "1.0.89"

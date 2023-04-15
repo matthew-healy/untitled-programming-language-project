@@ -1,10 +1,14 @@
 use serde::{Deserialize, Serialize};
 use std::{fs::File, io::Read, path::PathBuf};
 use test_generator::test_resources;
-use untitled_programming_language_project::{evaluate, values::Val};
+use untitled_programming_language_project::{
+    error::{Error, EvaluationError, ParseError, Tok, TypeError},
+    evaluate,
+    values::Val,
+};
 
-#[test_resources("./examples/pass/**/*.uplp")]
-pub fn test_example_file(p: &str) {
+#[test_resources("./examples/*/*.uplp")]
+pub fn test_error_file(p: &str) {
     let path = {
         let proj_root = env!("CARGO_MANIFEST_DIR");
         PathBuf::from(proj_root).join(p)
@@ -36,6 +40,47 @@ pub fn test_example_file(p: &str) {
 
             assert_eq!(Val::from(e), result);
         }
+        s if s.starts_with("fail ") => {
+            let json = s.strip_prefix("fail ").unwrap();
+            let e: FailExpectation =
+                serde_json::from_str(json).expect("Malformed test annotation json");
+
+            let result = evaluate(program).expect_err("Nothing went wrong");
+
+            match (e, result) {
+                (
+                    FailExpectation::UnboundVar { ident: expected },
+                    Error::ParseError(ParseError::UnboundIdentifier { ident: actual }),
+                ) => assert_eq!(expected, *actual),
+                (
+                    FailExpectation::UnexpectedToken {
+                        loc: loc1,
+                        tok: tok1,
+                    },
+                    Error::ParseError(ParseError::UnexpectedToken {
+                        location: loc2,
+                        token: tok2,
+                        ..
+                    }),
+                ) => {
+                    assert_eq!(loc1, loc2);
+                    match tok2 {
+                        Tok::EndOfFile => assert_eq!(tok1, "eof"),
+                        Tok::Raw(tok2) => assert_eq!(tok1, tok2),
+                    };
+                }
+                (
+                    FailExpectation::InvalidToken { loc: loc1 },
+                    Error::ParseError(ParseError::InvalidToken { location: loc2 }),
+                ) => assert_eq!(loc1, loc2),
+                (
+                    FailExpectation::DivisionByZero,
+                    Error::EvaluationError(EvaluationError::DivisionByZero),
+                ) => (),
+                (FailExpectation::TypeMismatch, Error::TypeError(TypeError::Mismatch)) => (),
+                (e, err) => panic!("Unrecognised test expectation {e:?}. Got {err:?}"),
+            }
+        }
         _ => panic!("Unsupported test annotation."),
     }
 }
@@ -56,4 +101,19 @@ impl From<TestExpectation> for Val {
             TestExpectation::Unit {} => Val::Unit,
         }
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(tag = "category", content = "metadata")]
+enum FailExpectation {
+    #[serde(rename = "Parse.unbound_var")]
+    UnboundVar { ident: String },
+    #[serde(rename = "Parse.unexpected_token")]
+    UnexpectedToken { loc: usize, tok: String },
+    #[serde(rename = "Parse.invalid_token")]
+    InvalidToken { loc: usize },
+    #[serde(rename = "Type.mismatch")]
+    TypeMismatch,
+    #[serde(rename = "Evaluation.division_by_zero")]
+    DivisionByZero,
 }

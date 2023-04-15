@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, ops::Deref};
 
 use crate::{types::Type, values::Val};
 
@@ -77,6 +77,14 @@ impl Debug for Expr {
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct RawIdent {
     s: String,
+}
+
+impl Deref for RawIdent {
+    type Target = String;
+
+    fn deref(&self) -> &Self::Target {
+        &self.s
+    }
 }
 
 impl Debug for RawIdent {

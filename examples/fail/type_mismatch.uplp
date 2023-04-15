@@ -1,1 +1,2 @@
+-- test: fail { "category": "Type.mismatch" }
 1 + ()

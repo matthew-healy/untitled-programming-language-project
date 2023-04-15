@@ -1,1 +1,2 @@
+-- test: fail { "category": "Parse.unexpected_token", "metadata": { "loc": 10, "tok": "let" } }
 let x = 1 let y = 2 in y 
