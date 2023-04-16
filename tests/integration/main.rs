@@ -76,7 +76,13 @@ pub fn test_error_file(p: &str) {
                     Error::ParseError(ParseError::InvalidToken { location: loc2 }),
                 ) => assert_eq!(loc1, loc2),
                 (DivisionByZero, Error::EvaluationError(EvaluationError::DivisionByZero)) => (),
-                (ErrorExpectation::TypeMismatch, Error::TypeError(TypeError::Mismatch)) => (),
+                (
+                    ErrorExpectation::TypeMismatch { t1: t11, t2: t21 },
+                    Error::TypeError(TypeError::Mismatch { t1: t12, t2: t22 }),
+                ) => {
+                    assert_eq!(t11, format!("{t12}"));
+                    assert_eq!(t21, format!("{t22}"));
+                }
                 (e, err) => panic!("Unrecognised test expectation {e:?}. Got {err:?}"),
             }
         }
@@ -112,7 +118,7 @@ enum ErrorExpectation {
     #[serde(rename = "Parse.invalid_token")]
     InvalidToken { loc: usize },
     #[serde(rename = "Type.mismatch")]
-    TypeMismatch,
+    TypeMismatch { t1: String, t2: String },
     #[serde(rename = "Evaluation.division_by_zero")]
     DivisionByZero,
 }

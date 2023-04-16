@@ -1,4 +1,4 @@
-use crate::{ast::RawIdent, parser::Token};
+use crate::{ast::RawIdent, parser::Token, types::Type};
 use lalrpop_util;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -80,7 +80,7 @@ impl<'src> From<LalrpopError<'src>> for ParseError {
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum TypeError {
-    Mismatch,
+    Mismatch { t1: Type, t2: Type },
     BadApplication,
 }
 

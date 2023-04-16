@@ -1,2 +1,2 @@
--- test: error { "category": "Type.mismatch" }
+-- test: error { "category": "Type.mismatch", "metadata": { "t1": "Unit", "t2": "Num" } }
 1 + ()

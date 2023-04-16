@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 
 use crate::ast::{BinaryOp, Expr};
 use crate::env::Env;
@@ -13,6 +13,18 @@ pub enum Type {
     Num,
     Unit,
     UnificationVar(usize),
+}
+
+impl Display for Type {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Type::Arrow(t1, t2) => write!(f, "{t1} -> {t2}"),
+            Type::Bool => write!(f, "Bool"),
+            Type::Num => write!(f, "Num"),
+            Type::Unit => write!(f, "Unit"),
+            Type::UnificationVar(n) => write!(f, "?{n}"),
+        }
+    }
 }
 
 impl Type {
@@ -103,10 +115,18 @@ impl TypeChecker {
                 let cond_ty = self.infer(cond)?;
                 let thn_ty = self.infer(thn)?;
                 let els_ty = self.infer(els)?;
-                if cond_ty == Type::Bool && thn_ty == els_ty {
-                    Ok(thn_ty)
+                if cond_ty != Type::Bool {
+                    Err(TypeError::Mismatch {
+                        t1: Type::Bool,
+                        t2: cond_ty,
+                    })
+                } else if thn_ty != els_ty {
+                    Err(TypeError::Mismatch {
+                        t1: thn_ty,
+                        t2: els_ty,
+                    })
                 } else {
-                    Err(TypeError::Mismatch)
+                    Ok(thn_ty)
                 }
             }
             Op(l, op, r) => {
@@ -161,7 +181,7 @@ impl TypeChecker {
                     Some(t1) => self.unify(t, t1.clone()),
                 }
             }
-            _ => Err(TypeError::Mismatch),
+            (t1, t2) => Err(TypeError::Mismatch { t1, t2 }),
         }
     }
 }
