@@ -1,0 +1,2 @@
+-- test: error { "category": "Type.mismatch", "metadata": { "t1": "Num", "t2": "Num -> ?0" } }
+let a = 1 in a 5
