@@ -1,2 +1,2 @@
--- test: check { "type": "Num", "value": 5568 }
+-- test: value { "type": "Num", "value": 5568 }
 5568

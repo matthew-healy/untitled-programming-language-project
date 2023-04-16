@@ -1,2 +1,2 @@
--- test: check { "type": "Num", "value": -1 }
+-- test: value { "type": "Num", "value": -1 }
 if false then 1 else -1

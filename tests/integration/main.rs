@@ -31,29 +31,31 @@ pub fn test_error_file(p: &str) {
 
     match a {
         "skip" => (),
-        s if s.starts_with("check ") => {
-            let json = s.strip_prefix("check ").unwrap();
-            let e: TestExpectation =
+        s if s.starts_with("value ") => {
+            let json = s.strip_prefix("value ").unwrap();
+            let e: ValueExpectation =
                 serde_json::from_str(json).expect("Malformed test annotation json");
 
             let result = evaluate(program).expect("Program evaluation failed");
 
             assert_eq!(Val::from(e), result);
         }
-        s if s.starts_with("fail ") => {
-            let json = s.strip_prefix("fail ").unwrap();
-            let e: FailExpectation =
+        s if s.starts_with("error ") => {
+            use ErrorExpectation::*;
+
+            let json = s.strip_prefix("error ").unwrap();
+            let e: ErrorExpectation =
                 serde_json::from_str(json).expect("Malformed test annotation json");
 
             let result = evaluate(program).expect_err("Nothing went wrong");
 
             match (e, result) {
                 (
-                    FailExpectation::UnboundVar { ident: expected },
+                    UnboundVar { ident: expected },
                     Error::ParseError(ParseError::UnboundIdentifier { ident: actual }),
                 ) => assert_eq!(expected, *actual),
                 (
-                    FailExpectation::UnexpectedToken {
+                    UnexpectedToken {
                         loc: loc1,
                         tok: tok1,
                     },
@@ -70,14 +72,11 @@ pub fn test_error_file(p: &str) {
                     };
                 }
                 (
-                    FailExpectation::InvalidToken { loc: loc1 },
+                    InvalidToken { loc: loc1 },
                     Error::ParseError(ParseError::InvalidToken { location: loc2 }),
                 ) => assert_eq!(loc1, loc2),
-                (
-                    FailExpectation::DivisionByZero,
-                    Error::EvaluationError(EvaluationError::DivisionByZero),
-                ) => (),
-                (FailExpectation::TypeMismatch, Error::TypeError(TypeError::Mismatch)) => (),
+                (DivisionByZero, Error::EvaluationError(EvaluationError::DivisionByZero)) => (),
+                (ErrorExpectation::TypeMismatch, Error::TypeError(TypeError::Mismatch)) => (),
                 (e, err) => panic!("Unrecognised test expectation {e:?}. Got {err:?}"),
             }
         }
@@ -87,25 +86,25 @@ pub fn test_error_file(p: &str) {
 
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type", content = "value")]
-enum TestExpectation {
+enum ValueExpectation {
     Bool(bool),
     Num(f64),
     Unit {},
 }
 
-impl From<TestExpectation> for Val {
-    fn from(e: TestExpectation) -> Self {
+impl From<ValueExpectation> for Val {
+    fn from(e: ValueExpectation) -> Self {
         match e {
-            TestExpectation::Bool(b) => Val::Bool(b),
-            TestExpectation::Num(n) => Val::Num(n),
-            TestExpectation::Unit {} => Val::Unit,
+            ValueExpectation::Bool(b) => Val::Bool(b),
+            ValueExpectation::Num(n) => Val::Num(n),
+            ValueExpectation::Unit {} => Val::Unit,
         }
     }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "category", content = "metadata")]
-enum FailExpectation {
+enum ErrorExpectation {
     #[serde(rename = "Parse.unbound_var")]
     UnboundVar { ident: String },
     #[serde(rename = "Parse.unexpected_token")]

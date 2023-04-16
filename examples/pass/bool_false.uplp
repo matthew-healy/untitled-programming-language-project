@@ -1,2 +1,2 @@
--- test: check { "type": "Bool", "value": false }
+-- test: value { "type": "Bool", "value": false }
 false

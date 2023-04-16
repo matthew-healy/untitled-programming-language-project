@@ -1,4 +1,4 @@
--- test: check { "type": "Num", "value": 2 }
+-- test: value { "type": "Num", "value": 2 }
 let a = 1 in
 let a = 2 in
 a

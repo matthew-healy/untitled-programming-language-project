@@ -1,2 +1,2 @@
--- test: check { "type": "Num", "value": 222 }
+-- test: value { "type": "Num", "value": 222 }
 444 / 2

@@ -1,2 +1,2 @@
--- test: fail { "category": "Parse.unbound_var", "metadata": { "ident": "not_a_bound_identifier" } }
+-- test: error { "category": "Parse.unbound_var", "metadata": { "ident": "not_a_bound_identifier" } }
 not_a_bound_identifier

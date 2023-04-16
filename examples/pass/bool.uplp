@@ -1,4 +1,4 @@
--- test: check { "type": "Bool", "value": true }
+-- test: value { "type": "Bool", "value": true }
 true == true && 
 false == false &&
 (true == false) == false &&

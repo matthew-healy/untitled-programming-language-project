@@ -1,4 +1,4 @@
--- test: check { "type": "Num", "value": 3628800 }
+-- test: value { "type": "Num", "value": 3628800 }
 
 let fact = |n: Num|
   let rec fact_rec = |n: Num, acc: Num|

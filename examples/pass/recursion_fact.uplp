@@ -1,4 +1,4 @@
--- test: check { "type": "Num", "value": 120 }
+-- test: value { "type": "Num", "value": 120 }
 let rec fact = |n: Num| 
   if n == 0 then 1
   else n * fact (n - 1) 

@@ -1,4 +1,4 @@
--- test: check { "type": "Num", "value": 8 }
+-- test: value { "type": "Num", "value": 8 }
 
 let rec fib = |n: Num| if n == 0 then 0 
   else if n == 1 then 1

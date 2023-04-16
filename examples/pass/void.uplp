@@ -1,2 +1,2 @@
--- test: check { "type": "Bool", "value": true }
+-- test: value { "type": "Bool", "value": true }
 () == ()
