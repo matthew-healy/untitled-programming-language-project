@@ -1,2 +1,7 @@
--- test: value { "type": "Unit", "value": {} }
+category = "value"
+
+[metadata]
+type = "Unit"
+value = {}
+---
 ()

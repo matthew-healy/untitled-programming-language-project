@@ -1,4 +1,9 @@
--- test: value { "type": "Num", "value": 100 }
+category = "value"
+
+[metadata]
+type = "Num"
+value = 100
+---
 let bool_fn = |x: Unit| true in
 if bool_fn () 
   then 100 

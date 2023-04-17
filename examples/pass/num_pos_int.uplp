@@ -1,2 +1,7 @@
--- test: value { "type": "Num", "value": 5568 }
+category = "value"
+
+[metadata]
+type = "Num"
+value = 5568
+---
 5568

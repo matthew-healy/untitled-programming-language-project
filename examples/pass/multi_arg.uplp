@@ -1,3 +1,8 @@
--- test: value { "type": "Num", "value": 110 }
+category = "value"
+
+[metadata]
+type = "Num"
+value = 110
+---
 let add = |x: Num, y: Num| x + y in 
 add 55.5 54.5

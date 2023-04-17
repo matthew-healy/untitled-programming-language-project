@@ -1,2 +1,7 @@
--- test: value { "type": "Num", "value": -1 }
+category = "value"
+
+[metadata]
+type = "Num"
+value = -1
+---
 if false then 1 else -1

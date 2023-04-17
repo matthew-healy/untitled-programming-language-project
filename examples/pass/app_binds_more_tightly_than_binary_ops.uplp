@@ -1,3 +1,8 @@
--- test: value { "type": "Num", "value": 4 }
+category = "value"
+
+[metadata]
+type = "Num"
+value = 4
+---
 let f = |x: Num| x * 3 in
 f 1 + 1

@@ -1,4 +1,9 @@
--- test: value { "type": "Num", "value": 5 }
+category = "value"
+
+[metadata]
+type = "Num"
+value = 5
+---
 let a = 100 in
 let b = |x: Unit| 5 in
 b ()

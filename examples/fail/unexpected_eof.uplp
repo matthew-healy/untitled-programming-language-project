@@ -1,2 +1,10 @@
--- test: error { "category": "Parse.unexpected_token", "metadata": { "loc": 9, "tok": "eof" } }
+category = "error"
+
+[metadata]
+error = "Parse.unexpected_token"
+
+[metadata.expectation]
+loc = 9
+tok = "eof"
+---
 let x = 1

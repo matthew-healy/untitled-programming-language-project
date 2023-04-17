@@ -1,2 +1,7 @@
--- test: value { "type": "Num", "value": 0.34377359052 }
+category = "value"
+
+[metadata]
+type = "Num"
+value = 0.34377359052
+---
 0.4516 * 0.7612347

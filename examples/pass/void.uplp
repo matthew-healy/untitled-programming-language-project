@@ -1,2 +1,7 @@
--- test: value { "type": "Bool", "value": true }
+category = "value"
+
+[metadata]
+type = "Bool"
+value = true
+---
 () == ()

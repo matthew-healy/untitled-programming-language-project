@@ -1,2 +1,9 @@
--- test: error { "category": "Parse.invalid_token", "metadata": { "loc": 0 } }
+category = "error"
+
+[metadata]
+error = "Parse.invalid_token"
+
+[metadata.expectation]
+loc = 0
+---
 ~

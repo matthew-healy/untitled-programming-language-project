@@ -1,5 +1,9 @@
 use serde::{Deserialize, Serialize};
-use std::{fs::File, io::Read, path::PathBuf};
+use std::{
+    fs::File,
+    io::{self, BufRead},
+    path::PathBuf,
+};
 use test_generator::test_resources;
 use untitled_programming_language_project::{
     error::{Error, EvaluationError, ParseError, Tok, TypeError},
@@ -14,40 +18,44 @@ pub fn test_error_file(p: &str) {
         PathBuf::from(proj_root).join(p)
     };
 
-    let file_contents = {
-        let mut file = File::open(path).unwrap();
-        let mut contents = String::new();
-        file.read_to_string(&mut contents).unwrap();
-        contents
-    };
+    let file = File::open(path).expect("Failed to open file");
+    let reader = io::BufReader::new(file);
+    let mut preface = Vec::new();
+    let mut program = Vec::new();
 
-    let (annotation, program) = file_contents
-        .split_once('\n')
-        .expect("Could not extract expectation from test file.");
-
-    let a = annotation
-        .strip_prefix("-- test: ")
-        .expect("Malformed test annotation");
-
-    match a {
-        "skip" => (),
-        s if s.starts_with("value ") => {
-            let json = s.strip_prefix("value ").unwrap();
-            let e: ValueExpectation =
-                serde_json::from_str(json).expect("Malformed test annotation json");
-
-            let result = evaluate(program).expect("Program evaluation failed");
-
-            assert_eq!(Val::from(e), result);
+    let mut split = false;
+    for line in reader.lines() {
+        let line = line.expect("Failed to read line");
+        if line == "---" {
+            split = true;
+            continue;
         }
-        s if s.starts_with("error ") => {
+
+        if split {
+            program.push(line);
+        } else {
+            preface.push(line);
+        }
+    }
+    if !split {
+        std::mem::swap(&mut program, &mut preface);
+    }
+
+    let expectation = preface.join("\n");
+    let expectation: Expectation = toml::from_str(expectation.as_str()).unwrap();
+
+    let program = program.join("\n");
+
+    match expectation {
+        Expectation::Skip => (),
+        Expectation::Value(v) => {
+            let result = evaluate(program.as_str()).expect("Program evaluation failed");
+            assert_eq!(Val::from(v), result)
+        }
+        Expectation::Error(e) => {
             use ErrorExpectation::*;
 
-            let json = s.strip_prefix("error ").unwrap();
-            let e: ErrorExpectation =
-                serde_json::from_str(json).expect("Malformed test annotation json");
-
-            let result = evaluate(program).expect_err("Nothing went wrong");
+            let result = evaluate(program.as_str()).expect_err("Nothing went wrong");
 
             match (e, result) {
                 (
@@ -86,8 +94,18 @@ pub fn test_error_file(p: &str) {
                 (e, err) => panic!("Unrecognised test expectation {e:?}. Got {err:?}"),
             }
         }
-        _ => panic!("Unsupported test annotation."),
     }
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(tag = "category", content = "metadata")]
+enum Expectation {
+    #[serde(rename = "value")]
+    Value(ValueExpectation),
+    #[serde(rename = "error")]
+    Error(ErrorExpectation),
+    #[serde(rename = "skip")]
+    Skip,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -109,7 +127,7 @@ impl From<ValueExpectation> for Val {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(tag = "category", content = "metadata")]
+#[serde(tag = "error", content = "expectation")]
 enum ErrorExpectation {
     #[serde(rename = "Parse.unbound_var")]
     UnboundVar { ident: String },
