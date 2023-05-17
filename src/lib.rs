@@ -20,7 +20,9 @@ lalrpop_mod!(
 
 pub fn parse(input: &str) -> Result<Box<RawExpr>, Error> {
     let parser = UplpParser::new();
-    let expr = parser.parse(input)?;
+    let expr = parser
+        .parse(input)
+        .map_err(|e| Error::from_lalrpop(e, input))?;
     Ok(expr)
 }
 

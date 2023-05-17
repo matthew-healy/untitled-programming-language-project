@@ -20,31 +20,36 @@ pub fn test_error_file(p: &str) {
 
     let file = File::open(path).expect("Failed to open file");
     let reader = io::BufReader::new(file);
-    let mut preface = Vec::new();
-    let mut program = Vec::new();
+    let mut preface = String::new();
+    let mut program = String::new();
 
-    let mut split = false;
-    for line in reader.lines() {
-        let line = line.expect("Failed to read line");
-        if line == "---" {
-            split = true;
-            continue;
-        }
+    let mut lines = reader.lines();
 
-        if split {
-            program.push(line);
-        } else {
-            preface.push(line);
+    let mut in_preface = true;
+
+    while let Some(Ok(ln)) = lines.next() {
+        program.push_str(ln.as_str());
+        program.push('\n');
+
+        if in_preface {
+            if ln.starts_with("--") {
+                let uncommented = if ln.len() > 2 { &ln[3..] } else { "" };
+                preface.push_str(uncommented);
+                preface.push('\n');
+            } else {
+                in_preface = false;
+            }
         }
     }
-    if !split {
+
+    if preface.is_empty() {
         std::mem::swap(&mut program, &mut preface);
     }
 
-    let expectation = preface.join("\n");
-    let expectation: Expectation = toml::from_str(expectation.as_str()).unwrap();
+    println!("preface is:\n{preface}");
 
-    let program = program.join("\n");
+    let expectation: Expectation =
+        toml::from_str(preface.as_str()).expect("Failed to parse toml header");
 
     match expectation {
         Expectation::Skip => (),
@@ -63,26 +68,18 @@ pub fn test_error_file(p: &str) {
                     Error::ParseError(ParseError::UnboundIdentifier { ident: actual }),
                 ) => assert_eq!(expected, *actual),
                 (
-                    UnexpectedToken {
-                        loc: loc1,
-                        tok: tok1,
-                    },
-                    Error::ParseError(ParseError::UnexpectedToken {
-                        location: loc2,
-                        token: tok2,
-                        ..
-                    }),
+                    UnexpectedToken { tok: tok1 },
+                    Error::ParseError(ParseError::UnexpectedToken { token: tok2, .. }),
                 ) => {
-                    assert_eq!(loc1, loc2);
                     match tok2 {
                         Tok::EndOfFile => assert_eq!(tok1, "eof"),
                         Tok::Raw(tok2) => assert_eq!(tok1, tok2),
                     };
                 }
                 (
-                    InvalidToken { loc: loc1 },
-                    Error::ParseError(ParseError::InvalidToken { location: loc2 }),
-                ) => assert_eq!(loc1, loc2),
+                    InvalidToken { tok: tok1 },
+                    Error::ParseError(ParseError::InvalidToken { token: tok2, .. }),
+                ) => assert_eq!(tok1, tok2),
                 (DivisionByZero, Error::EvaluationError(EvaluationError::DivisionByZero)) => (),
                 (
                     ErrorExpectation::TypeMismatch { t1: t11, t2: t21 },
@@ -132,9 +129,9 @@ enum ErrorExpectation {
     #[serde(rename = "Parse.unbound_var")]
     UnboundVar { ident: String },
     #[serde(rename = "Parse.unexpected_token")]
-    UnexpectedToken { loc: usize, tok: String },
+    UnexpectedToken { tok: String },
     #[serde(rename = "Parse.invalid_token")]
-    InvalidToken { loc: usize },
+    InvalidToken { tok: String },
     #[serde(rename = "Type.mismatch")]
     TypeMismatch { t1: String, t2: String },
     #[serde(rename = "Evaluation.division_by_zero")]

@@ -1,7 +1,6 @@
-category = "value"
-
-[metadata]
-type = "Num"
-value = 676.5
----
+-- category = "value"
+--
+-- [metadata]
+-- type = "Num"
+-- value = 676.5
 99 + 105 * 22 / 4

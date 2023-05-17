@@ -1,6 +1,5 @@
-category = "error"
-
-[metadata]
-error = "Evaluation.division_by_zero"
----
+-- category = "error"
+--
+-- [metadata]
+-- error = "Evaluation.division_by_zero"
 let zero = 0 in 1 / zero

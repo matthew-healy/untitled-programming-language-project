@@ -1,8 +1,7 @@
-category = "value"
-
-[metadata]
-type = "Num"
-value = 2.0
----
+-- category = "value"
+--
+-- [metadata]
+-- type = "Num"
+-- value = 2.0
 let f = |x: Num| x + 1 in
 f 1

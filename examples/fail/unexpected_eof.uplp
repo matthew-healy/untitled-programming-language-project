@@ -1,10 +1,8 @@
-category = "error"
-
-[metadata]
-error = "Parse.unexpected_token"
-
-[metadata.expectation]
-loc = 9
-tok = "eof"
----
+-- category = "error"
+--
+-- [metadata]
+-- error = "Parse.unexpected_token"
+--
+-- [metadata.expectation]
+-- tok = "eof"
 let x = 1

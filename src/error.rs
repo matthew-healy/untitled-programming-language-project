@@ -13,6 +13,7 @@ pub enum Error {
 #[derive(Debug, PartialEq, Eq)]
 pub enum ParseError {
     InvalidToken {
+        token: String,
         location: usize,
     },
     UnexpectedToken {
@@ -33,24 +34,15 @@ pub enum Tok {
 
 type LalrpopError<'src> = lalrpop_util::ParseError<usize, Token<'src>, &'static str>;
 
-impl<'src> From<LalrpopError<'src>> for Error {
-    fn from(e: LalrpopError<'src>) -> Self {
-        Error::ParseError(e.into())
-    }
-}
-
-impl From<ParseError> for Error {
-    fn from(e: ParseError) -> Self {
-        Error::ParseError(e)
-    }
-}
-
-impl<'src> From<LalrpopError<'src>> for ParseError {
-    fn from(e: LalrpopError<'src>) -> Self {
+impl Error {
+    pub fn from_lalrpop<'src>(e: LalrpopError<'src>, src: &'src str) -> Self {
         use lalrpop_util::ParseError::*;
 
-        match e {
-            InvalidToken { location } => ParseError::InvalidToken { location },
+        let parse_error = match e {
+            InvalidToken { location } => ParseError::InvalidToken {
+                token: src[location..location + 1].to_owned(),
+                location,
+            },
             UnrecognizedEOF { location, expected } => ParseError::UnexpectedToken {
                 location,
                 token: Tok::EndOfFile,
@@ -71,8 +63,16 @@ impl<'src> From<LalrpopError<'src>> for ParseError {
                 token: Tok::Raw(tok.to_string()),
                 expected: vec![],
             },
-            User { .. } => unreachable!("We don't currently use lalrpop's user error feature."),
-        }
+            User { .. } => unreachable!("We don't currently use lalrpop's user error feature"),
+        };
+
+        Self::ParseError(parse_error)
+    }
+}
+
+impl From<ParseError> for Error {
+    fn from(e: ParseError) -> Self {
+        Error::ParseError(e)
     }
 }
 

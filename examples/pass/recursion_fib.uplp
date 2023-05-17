@@ -1,9 +1,8 @@
-category = "value"
-
-[metadata]
-type = "Num"
-value = 8
----
+-- category = "value"
+--
+-- [metadata]
+-- type = "Num"
+-- value = 8
 let rec fib = |n: Num| if n == 0 then 0 
   else if n == 1 then 1
   else fib (n - 2) + fib (n - 1) in

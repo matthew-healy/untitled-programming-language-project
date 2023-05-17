@@ -1,9 +1,8 @@
-category = "error"
-
-[metadata]
-error = "Parse.unbound_var"
-
-[metadata.expectation]
-ident = "not_a_bound_identifier"
----
+-- category = "error"
+--
+-- [metadata]
+-- error = "Parse.unbound_var"
+--
+-- [metadata.expectation]
+-- ident = "not_a_bound_identifier"
 not_a_bound_identifier

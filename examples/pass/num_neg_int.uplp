@@ -1,7 +1,6 @@
-category = "value"
-
-[metadata]
-type = "Num"
-value = -914431
----
+-- category = "value"
+--
+-- [metadata]
+-- type = "Num"
+-- value = -914431
 -914431

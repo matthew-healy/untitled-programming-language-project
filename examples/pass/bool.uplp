@@ -1,9 +1,8 @@
-category = "value"
-
-[metadata]
-type = "Bool"
-value = true
----
+-- category = "value"
+--
+-- [metadata]
+-- type = "Bool"
+-- value = true
 true == true && 
 false == false &&
 (true == false) == false &&
