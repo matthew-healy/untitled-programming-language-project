@@ -1,0 +1,42 @@
+name: Rebase & test
+on:
+  push:
+    branches:
+      - trunk
+  pull_request:
+
+jobs:
+  nix-flake-check:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+        include:
+          - os: ubuntu-latest
+            system: x86_64-linux
+          - os: macos-latest
+            system: x86_64-darwin
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Rebase on trunk
+      if: github.ref != '/refs/origin/trunk'
+      run: |
+        git pull --rebase origin trunk
+        
+    - name: Install Nix
+      uses: cachix/install-nix-action@v20
+      with:
+        nix-path: nixpkgs=channel:nixos-unstable
+        extra_nix_config: |
+          experimental-feature = nix-command flakes
+          accept-flake-config = true
+
+    - name: Run all checks
+      run: |
+        nix flake check --print-build-logs
