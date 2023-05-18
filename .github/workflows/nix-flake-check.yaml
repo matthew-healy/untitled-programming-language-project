@@ -25,7 +25,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Rebase on trunk
-      if: github.ref != '/refs/heads/trunk'
+      if: !contains(github.ref, 'trunk')
       run: |
         git pull --rebase origin trunk
         
