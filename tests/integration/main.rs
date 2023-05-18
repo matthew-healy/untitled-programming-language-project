@@ -46,8 +46,6 @@ pub fn test_error_file(p: &str) {
         std::mem::swap(&mut program, &mut preface);
     }
 
-    println!("preface is:\n{preface}");
-
     let expectation: Expectation =
         toml::from_str(preface.as_str()).expect("Failed to parse toml header");
 
