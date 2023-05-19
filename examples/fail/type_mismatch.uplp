@@ -4,6 +4,6 @@
 -- error = "Type.mismatch"
 --
 -- [metadata.expectation]
--- t1 = "Unit"
--- t2 = "Num"
+-- expected = "Num"
+-- got = "Unit"
 1 + ()

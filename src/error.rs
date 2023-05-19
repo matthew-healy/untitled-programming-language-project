@@ -80,7 +80,7 @@ impl From<ParseError> for Error {
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum TypeError {
-    Mismatch { t1: Type, t2: Type },
+    Mismatch { got: Type, expected: Type },
     BadApplication,
 }
 

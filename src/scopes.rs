@@ -17,6 +17,7 @@ impl ScopeChecker {
 impl ScopeChecker {
     pub fn check(&mut self, raw_expr: RawExpr) -> Result<Expr, Error> {
         match raw_expr {
+            RawExpr::Ascribed(e, t) => Ok(Expr::Ascribed(Box::new(self.check(*e)?), t)),
             RawExpr::App(fnc, args) => {
                 let fnc = self.check(*fnc)?;
                 let args = args

@@ -1,0 +1,9 @@
+-- category = 'error'
+--
+-- [metadata]
+-- error = 'Type.mismatch'
+--
+-- [metadata.expectation]
+-- expected = "Num"
+-- got = "Bool"
+false : Num

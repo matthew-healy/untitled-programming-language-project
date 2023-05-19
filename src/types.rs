@@ -62,6 +62,12 @@ impl TypeChecker {
         use Expr::*;
 
         match e {
+            Ascribed(e, t) => {
+                println!("{e:?} is ascribed type {t:?}");
+                let e_ty = self.infer(e.as_ref())?;
+                println!("Inferred it to have type {e_ty:?}");
+                self.unify(e_ty, t.clone())
+            }
             App(fnc, args) => {
                 // `fn_ty` is the inferred type of the function itself, based
                 // on its body.
@@ -117,13 +123,13 @@ impl TypeChecker {
                 let els_ty = self.infer(els)?;
                 if cond_ty != Type::Bool {
                     Err(TypeError::Mismatch {
-                        t1: Type::Bool,
-                        t2: cond_ty,
+                        got: Type::Bool,
+                        expected: cond_ty,
                     })
                 } else if thn_ty != els_ty {
                     Err(TypeError::Mismatch {
-                        t1: thn_ty,
-                        t2: els_ty,
+                        got: thn_ty,
+                        expected: els_ty,
                     })
                 } else {
                     Ok(thn_ty)
@@ -181,7 +187,10 @@ impl TypeChecker {
                     Some(t1) => self.unify(t, t1.clone()),
                 }
             }
-            (t1, t2) => Err(TypeError::Mismatch { t1, t2 }),
+            (t1, t2) => Err(TypeError::Mismatch {
+                got: t1,
+                expected: t2,
+            }),
         }
     }
 }

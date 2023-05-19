@@ -4,6 +4,7 @@ use crate::{types::Type, values::Val};
 
 #[derive(PartialEq)]
 pub enum RawExpr {
+    Ascribed(Box<RawExpr>, Type),
     App(Box<RawExpr>, Vec<RawExpr>),
     Lambda(Vec<(RawIdent, Type)>, Box<RawExpr>),
     Let(bool, RawIdent, Box<RawExpr>, Box<RawExpr>),
@@ -16,6 +17,7 @@ pub enum RawExpr {
 impl Debug for RawExpr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            RawExpr::Ascribed(e, t) => write!(f, "{e:?} : {t:?}"),
             RawExpr::App(fnc, a) => write!(f, "({fnc:?} {a:?})"),
             RawExpr::Lambda(bindings, body) => {
                 let bs = bindings
@@ -41,6 +43,7 @@ impl Debug for RawExpr {
 
 #[derive(PartialEq)]
 pub enum Expr {
+    Ascribed(Box<Expr>, Type),
     App(Box<Expr>, Vec<Expr>),
     Lambda(Vec<Type>, Box<Expr>),
     Let(bool, Box<Expr>, Box<Expr>),
@@ -53,6 +56,7 @@ pub enum Expr {
 impl Debug for Expr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Expr::Ascribed(e, t) => write!(f, "{e:?} : {t:?}"),
             Expr::App(fnc, a) => write!(f, "{fnc:?} {a:?}"),
             Expr::Lambda(tys, body) => {
                 let tys = tys

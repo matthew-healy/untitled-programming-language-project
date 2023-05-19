@@ -1,4 +1,6 @@
--- category = "skip"
-
--- todo: type ascription
+-- category = 'value'
+--
+-- [metadata]
+-- type = "Unit"
+-- value = {}
 () : Unit

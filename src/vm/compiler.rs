@@ -51,6 +51,7 @@ impl Compiler {
 
     fn push(&mut self, e: &Expr) {
         match e {
+            Expr::Ascribed(e, _t) => self.push(e),
             Expr::App(fnc, args) => {
                 let code = std::mem::take(&mut self.code);
                 self.code.push(Op::Apply());

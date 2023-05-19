@@ -80,11 +80,17 @@ pub fn test_error_file(p: &str) {
                 ) => assert_eq!(tok1, tok2),
                 (DivisionByZero, Error::EvaluationError(EvaluationError::DivisionByZero)) => (),
                 (
-                    ErrorExpectation::TypeMismatch { t1: t11, t2: t21 },
-                    Error::TypeError(TypeError::Mismatch { t1: t12, t2: t22 }),
+                    ErrorExpectation::TypeMismatch {
+                        got: got1,
+                        expected: expected1,
+                    },
+                    Error::TypeError(TypeError::Mismatch {
+                        got: got2,
+                        expected: expected2,
+                    }),
                 ) => {
-                    assert_eq!(t11, format!("{t12}"));
-                    assert_eq!(t21, format!("{t22}"));
+                    assert_eq!(got1, format!("{got2}"));
+                    assert_eq!(expected1, format!("{expected2}"));
                 }
                 (e, err) => panic!("Unrecognised test expectation {e:?}. Got {err:?}"),
             }
@@ -131,7 +137,7 @@ enum ErrorExpectation {
     #[serde(rename = "Parse.invalid_token")]
     InvalidToken { tok: String },
     #[serde(rename = "Type.mismatch")]
-    TypeMismatch { t1: String, t2: String },
+    TypeMismatch { got: String, expected: String },
     #[serde(rename = "Evaluation.division_by_zero")]
     DivisionByZero,
 }
