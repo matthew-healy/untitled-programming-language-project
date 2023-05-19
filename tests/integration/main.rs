@@ -13,6 +13,27 @@ use untitled_programming_language_project::{
 
 #[test_resources("./examples/*/*.uplp")]
 pub fn test(p: &str) {
+    let test = parse_annotated_test(p);
+
+    match test.expectation {
+        Expectation::Skip => (),
+        Expectation::Value(v) => {
+            let result = evaluate(test.program.as_str()).expect("Program evaluation failed");
+            assert_eq!(v, result)
+        }
+        Expectation::Error(e) => {
+            let result = evaluate(test.program.as_str()).expect_err("Nothing went wrong");
+            assert_eq!(e, result)
+        }
+    }
+}
+
+struct AnnotatedTest {
+    expectation: Expectation,
+    program: String,
+}
+
+fn parse_annotated_test(p: &str) -> AnnotatedTest {
     let path = {
         let proj_root = env!("CARGO_MANIFEST_DIR");
         PathBuf::from(proj_root).join(p)
@@ -49,52 +70,9 @@ pub fn test(p: &str) {
     let expectation: Expectation =
         toml::from_str(preface.as_str()).expect("Failed to parse toml header");
 
-    match expectation {
-        Expectation::Skip => (),
-        Expectation::Value(v) => {
-            let result = evaluate(program.as_str()).expect("Program evaluation failed");
-            assert_eq!(v, result)
-        }
-        Expectation::Error(e) => {
-            use ErrorExpectation::*;
-
-            let result = evaluate(program.as_str()).expect_err("Nothing went wrong");
-
-            match (e, result) {
-                (
-                    UnboundVar { ident: expected },
-                    Error::ParseError(ParseError::UnboundIdentifier { ident: actual }),
-                ) => assert_eq!(expected, *actual),
-                (
-                    UnexpectedToken { tok: tok1 },
-                    Error::ParseError(ParseError::UnexpectedToken { token: tok2, .. }),
-                ) => {
-                    match tok2 {
-                        Tok::EndOfFile => assert_eq!(tok1, "eof"),
-                        Tok::Raw(tok2) => assert_eq!(tok1, tok2),
-                    };
-                }
-                (
-                    InvalidToken { tok: tok1 },
-                    Error::ParseError(ParseError::InvalidToken { token: tok2, .. }),
-                ) => assert_eq!(tok1, tok2),
-                (DivisionByZero, Error::EvaluationError(EvaluationError::DivisionByZero)) => (),
-                (
-                    ErrorExpectation::TypeMismatch {
-                        got: got1,
-                        expected: expected1,
-                    },
-                    Error::TypeError(TypeError::Mismatch {
-                        got: got2,
-                        expected: expected2,
-                    }),
-                ) => {
-                    assert_eq!(got1, format!("{got2}"));
-                    assert_eq!(expected1, format!("{expected2}"));
-                }
-                (e, err) => panic!("Unrecognised test expectation {e:?}. Got {err:?}"),
-            }
-        }
+    AnnotatedTest {
+        program,
+        expectation,
     }
 }
 
@@ -143,4 +121,47 @@ enum ErrorExpectation {
     TypeMismatch { got: String, expected: String },
     #[serde(rename = "Evaluation.division_by_zero")]
     DivisionByZero,
+}
+
+impl PartialEq<Error> for ErrorExpectation {
+    fn eq(&self, other: &Error) -> bool {
+        use ErrorExpectation::*;
+
+        match (self, other) {
+            (
+                UnboundVar { ident: ident1 },
+                Error::ParseError(ParseError::UnboundIdentifier { ident: ident2 }),
+            ) => ident1.as_str() == ident2.as_str(),
+            (
+                UnexpectedToken { tok: tok1 },
+                Error::ParseError(ParseError::UnexpectedToken {
+                    token: Tok::Raw(tok2),
+                    ..
+                }),
+            ) => tok1.as_str() == tok2,
+            (
+                UnexpectedToken { tok },
+                Error::ParseError(ParseError::UnexpectedToken {
+                    token: Tok::EndOfFile,
+                    ..
+                }),
+            ) => tok == "eof",
+            (
+                InvalidToken { tok: tok1 },
+                Error::ParseError(ParseError::InvalidToken { token: tok2, .. }),
+            ) => tok1 == tok2,
+            (
+                TypeMismatch {
+                    got: got1,
+                    expected: expected1,
+                },
+                Error::TypeError(TypeError::Mismatch {
+                    got: got2,
+                    expected: expected2,
+                }),
+            ) => got1.as_str() == got2.to_string() && expected1.as_str() == expected2.to_string(),
+            (DivisionByZero, Error::EvaluationError(EvaluationError::DivisionByZero)) => true,
+            _ => false,
+        }
+    }
 }
