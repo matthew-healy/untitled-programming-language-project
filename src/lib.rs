@@ -15,7 +15,7 @@ mod vm;
 
 lalrpop_mod!(
     #[allow(clippy::all)]
-    parser
+    pub parser
 );
 
 pub fn parse(input: &str) -> Result<Box<RawExpr>, Error> {

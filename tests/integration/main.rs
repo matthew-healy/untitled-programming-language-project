@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::{
     fs::File,
     io::{self, BufRead},
@@ -12,7 +12,7 @@ use untitled_programming_language_project::{
 };
 
 #[test_resources("./examples/*/*.uplp")]
-pub fn test_error_file(p: &str) {
+pub fn test(p: &str) {
     let path = {
         let proj_root = env!("CARGO_MANIFEST_DIR");
         PathBuf::from(proj_root).join(p)
@@ -53,7 +53,7 @@ pub fn test_error_file(p: &str) {
         Expectation::Skip => (),
         Expectation::Value(v) => {
             let result = evaluate(program.as_str()).expect("Program evaluation failed");
-            assert_eq!(Val::from(v), result)
+            assert_eq!(v, result)
         }
         Expectation::Error(e) => {
             use ErrorExpectation::*;
@@ -98,7 +98,7 @@ pub fn test_error_file(p: &str) {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 #[serde(tag = "category", content = "metadata")]
 enum Expectation {
     #[serde(rename = "value")]
@@ -109,25 +109,28 @@ enum Expectation {
     Skip,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(tag = "type", content = "value")]
 enum ValueExpectation {
     Bool(bool),
     Num(f64),
-    Unit {},
+    Unit,
+    Closure,
 }
 
-impl From<ValueExpectation> for Val {
-    fn from(e: ValueExpectation) -> Self {
-        match e {
-            ValueExpectation::Bool(b) => Val::Bool(b),
-            ValueExpectation::Num(n) => Val::Num(n),
-            ValueExpectation::Unit {} => Val::Unit,
+impl PartialEq<Val> for ValueExpectation {
+    fn eq(&self, other: &Val) -> bool {
+        match (self, other) {
+            (ValueExpectation::Bool(b1), Val::Bool(b2)) => b1 == b2,
+            (ValueExpectation::Num(n1), Val::Num(n2)) => n1 == n2,
+            (ValueExpectation::Unit, Val::Unit) => true,
+            (ValueExpectation::Closure, Val::Closure { .. }) => true,
+            _ => false,
         }
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(tag = "error", content = "expectation")]
 enum ErrorExpectation {
     #[serde(rename = "Parse.unbound_var")]

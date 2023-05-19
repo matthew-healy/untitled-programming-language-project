@@ -48,7 +48,7 @@ InfixExpr: Box<RawExpr> = {
     #[assoc(side="left")]
     InfixBOpApp<InfixBOp3, InfixExpr, InfixExpr>,
 
-    #[precedence(level = "4")]
+    #[precedence(level="4")]
     #[assoc(side="left")]
     InfixBOpApp<InfixBOp4, InfixExpr, InfixExpr>
 }
@@ -93,9 +93,15 @@ Terminal: Box<RawExpr> = {
 };
 
 Type: Type = {
+    <p: PrimType> "->" <t: Type> => Type::Arrow(Box::new(p), Box::new(t)),
+    <PrimType>
+}
+
+PrimType: Type = {
     "Bool" => Type::Bool,
     "Num" => Type::Num,
     "Unit" => Type::Unit,
+    "(" <Type> ")" => <>,
 };
 
 Ident: RawIdent = {
