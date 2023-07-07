@@ -12,11 +12,6 @@ jobs:
         os:
           - ubuntu-latest
           - macos-latest
-        include:
-          - os: ubuntu-latest
-            fail-job-on-fail: true
-          - os: macos-latest
-            fail-job-on-fail: false
 
     runs-on: ${{ matrix.os }}
 
@@ -30,8 +25,7 @@ jobs:
         git pull --rebase origin trunk
         
     - name: Install Nix
-      uses: cachix/install-nix-action@v20
-      continue-on-error: ${{ !matrix.fail-job-on-fail }}
+      uses: cachix/install-nix-action@v22
       with:
         nix_path: nixpkgs=channel:nixos-unstable
         extra_nix_config: |
@@ -39,6 +33,5 @@ jobs:
           accept-flake-config = true
 
     - name: Run all checks
-      continue-on-error: ${{ !matrix.fail-job-on-fail }}
       run: |
         nix flake check --print-build-logs
