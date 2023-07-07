@@ -1,4 +1,4 @@
-use crate::{ast::RawIdent, parser::Token, types::Type};
+use crate::{ast::RawIdent, parser::Token, typ::Type};
 use lalrpop_util;
 
 #[derive(Debug, PartialEq, Eq)]

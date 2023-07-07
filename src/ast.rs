@@ -1,6 +1,6 @@
 use std::{fmt::Debug, ops::Deref};
 
-use crate::{types::Type, values::Val};
+use crate::{typ::Type, values::Val};
 
 #[derive(PartialEq)]
 pub enum RawExpr {

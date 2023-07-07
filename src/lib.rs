@@ -3,13 +3,13 @@ use error::Error;
 use lalrpop_util::{self, lalrpop_mod};
 use parser::UplpParser;
 use scopes::ScopeChecker;
-use types::{Type, TypeChecker};
+use typ::Type;
 
 pub mod ast;
 mod env;
 pub mod error;
 mod scopes;
-pub mod types;
+pub mod typ;
 pub mod values;
 mod vm;
 
@@ -27,7 +27,7 @@ pub fn parse(input: &str) -> Result<Box<RawExpr>, Error> {
 }
 
 pub fn check_types(input: &str) -> Result<Type, Error> {
-    let mut type_checker = types::TypeChecker::new();
+    let mut type_checker = typ::check::er();
 
     let expr = parse_and_scope_check(input)?;
     let typ = type_checker.infer(&expr)?;
@@ -37,7 +37,7 @@ pub fn check_types(input: &str) -> Result<Type, Error> {
 pub fn evaluate(input: &str) -> Result<values::Val, error::Error> {
     let expr = parse_and_scope_check(input)?;
 
-    let mut type_checker = TypeChecker::new();
+    let mut type_checker = typ::check::er();
     let _ = type_checker.infer(&expr)?;
 
     let compiler = vm::Compiler::new();

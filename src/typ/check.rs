@@ -1,53 +1,25 @@
 use std::collections::HashMap;
-use std::fmt::{Debug, Display};
 
 use crate::ast::{BinaryOp, Expr};
 use crate::env::Env;
 use crate::error::TypeError;
 use crate::values::Val;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum Type {
-    Arrow(Box<Type>, Box<Type>),
-    Bool,
-    Num,
-    Unit,
-    UnificationVar(usize),
+use super::Type;
+
+// `typ::check::er()` - get it?
+pub fn er() -> TypeChecker {
+    TypeChecker::new()
 }
 
-impl Display for Type {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Type::Arrow(t1, t2) => write!(f, "{t1} -> {t2}"),
-            Type::Bool => write!(f, "Bool"),
-            Type::Num => write!(f, "Num"),
-            Type::Unit => write!(f, "Unit"),
-            Type::UnificationVar(n) => write!(f, "?{n}"),
-        }
-    }
-}
-
-impl Type {
-    fn applied_to_args(self, n_args: usize) -> Result<Type, TypeError> {
-        if n_args == 0 {
-            Ok(self)
-        } else {
-            match self {
-                Type::Arrow(_, out_ty) => out_ty.applied_to_args(n_args - 1),
-                _ => Err(TypeError::BadApplication),
-            }
-        }
-    }
-}
-
-pub(crate) struct TypeChecker {
+pub struct TypeChecker {
     typing_env: Env<Type>,
     next_unif_var: usize,
     unif_table: HashMap<usize, Type>,
 }
 
 impl TypeChecker {
-    pub(crate) fn new() -> Self {
+    fn new() -> Self {
         let typing_env = Env::new();
         let next_unif_var = 0;
         let unif_table = Default::default();
