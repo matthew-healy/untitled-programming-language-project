@@ -6,7 +6,7 @@ use crate::{typ::Type, values::Val};
 pub enum RawExpr {
     Ascribed(Box<RawExpr>, Type),
     App(Box<RawExpr>, Vec<RawExpr>),
-    Lambda(Vec<(RawIdent, Type)>, Box<RawExpr>),
+    Lambda(RawIdent, Type, Box<RawExpr>),
     Let(bool, RawIdent, Box<RawExpr>, Box<RawExpr>),
     Literal(Val),
     IfThenElse(Box<RawExpr>, Box<RawExpr>, Box<RawExpr>),
@@ -14,19 +14,20 @@ pub enum RawExpr {
     Op(Box<RawExpr>, BinaryOp, Box<RawExpr>),
 }
 
+impl RawExpr {
+    pub fn lambda(args: Vec<(RawIdent, Type)>, body: Box<RawExpr>) -> Box<Self> {
+        args.into_iter()
+            .rev()
+            .fold(body, |body, (id, ty)| Box::new(Self::Lambda(id, ty, body)))
+    }
+}
+
 impl Debug for RawExpr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             RawExpr::Ascribed(e, t) => write!(f, "{e:?} : {t:?}"),
             RawExpr::App(fnc, a) => write!(f, "({fnc:?} {a:?})"),
-            RawExpr::Lambda(bindings, body) => {
-                let bs = bindings
-                    .iter()
-                    .map(|(id, ty)| format!("{:?}: {:?}", id, ty))
-                    .collect::<Vec<_>>()
-                    .join(", ");
-                write!(f, "(|{bs:?}| {body:?})")
-            }
+            RawExpr::Lambda(id, ty, body) => write!(f, "|{id:?}: {ty:?}| {body:?}"),
             RawExpr::Let(rec, i, bnd, body) => {
                 let rec_txt = if *rec { "rec " } else { "" };
                 write!(f, "(let {rec_txt}{i:?} = {bnd:?} in {body:?})")
@@ -41,11 +42,11 @@ impl Debug for RawExpr {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq)]
 pub enum Expr {
     Ascribed(Box<Expr>, Type),
     App(Box<Expr>, Vec<Expr>),
-    Lambda(Vec<Type>, Box<Expr>),
+    Lambda(Type, Box<Expr>),
     Let(bool, Box<Expr>, Box<Expr>),
     Literal(Val),
     IfThenElse(Box<Expr>, Box<Expr>, Box<Expr>),
@@ -58,14 +59,7 @@ impl Debug for Expr {
         match self {
             Expr::Ascribed(e, t) => write!(f, "{e:?} : {t:?}"),
             Expr::App(fnc, a) => write!(f, "{fnc:?} {a:?}"),
-            Expr::Lambda(tys, body) => {
-                let tys = tys
-                    .iter()
-                    .map(|ty| format!("{:?}", ty))
-                    .collect::<Vec<_>>()
-                    .join(", ");
-                write!(f, "|{tys:?}| {body:?}")
-            }
+            Expr::Lambda(ty, body) => write!(f, "|{ty:?}| {body:?}"),
             Expr::Let(rec, bnd, body) => {
                 let rec = if *rec { "rec " } else { "" };
                 write!(f, "let {rec}{bnd:?} in {body:?}")

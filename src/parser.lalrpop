@@ -14,7 +14,7 @@ Expr: Box<RawExpr> = {
     <InfixExpr> ":" <Type> => Box::new(RawExpr::Ascribed(<>)),
     "let" <rec: "rec"?> <ident: Ident> "=" <bnd: Expr> "in" <body: Expr> =>
         Box::new(RawExpr::Let(rec.is_some(), ident, bnd, body)),
-    "|" <CommaSeparated<FnArg>> "|" <Expr> => Box::new(RawExpr::Lambda(<>)),
+    "|" <CommaSeparated<FnArg>> "|" <Expr> => RawExpr::lambda(<>),
     "if" <Expr> "then" <Expr> "else" <Expr> => Box::new(RawExpr::IfThenElse(<>)),
 }
 

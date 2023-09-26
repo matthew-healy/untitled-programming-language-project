@@ -61,12 +61,32 @@ impl Compiler {
                 }
                 self.code.push(Op::PushRetAddr(code));
             }
-            Expr::Lambda(ts, body) => {
-                let mut code = Compiler::for_tail().compile(body);
-                ts.iter().for_each(|_| {
-                    code.push(Op::Grab());
-                });
-                self.code.push(Op::Closure(code));
+            Expr::Lambda(_, body) => {
+                let closure_code = match body.as_ref() {
+                    // If the lambda body is another lambda, then we treat the
+                    // whole thing as a single multi-arg lambda. This avoids the
+                    // creation of pointless nested `Op::Closure`s by just
+                    // grabbing all the arguments we need at once.
+                    Expr::Lambda(_, body) => {
+                        let mut grabs = 2;
+                        let mut body = body.clone();
+                        while let Expr::Lambda(_, nxt_body) = *body {
+                            grabs += 1;
+                            body = nxt_body
+                        }
+                        let mut code = Compiler::for_tail().compile(&body);
+                        for _ in 0..grabs {
+                            code.push(Op::Grab());
+                        }
+                        code
+                    }
+                    _ => {
+                        let mut code = Compiler::for_tail().compile(body);
+                        code.push(Op::Grab());
+                        code
+                    }
+                };
+                self.code.push(Op::Closure(closure_code))
             }
             Expr::Let(false, binding, body) => {
                 self.code.push(Op::EndLet());
