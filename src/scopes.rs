@@ -1,10 +1,11 @@
 use crate::{
-    ast::{Expr, RawExpr, RawIdent},
+    ast::{Expr, RawExpr},
     error::{Error, ParseError},
+    interner,
 };
 
 pub struct ScopeChecker {
-    idents: Vec<RawIdent>,
+    idents: Vec<interner::Id>,
 }
 
 impl ScopeChecker {
@@ -56,15 +57,13 @@ impl ScopeChecker {
                 let r = self.check(*r)?;
                 Ok(Expr::Op(Box::new(l), op, Box::new(r)))
             }
-            RawExpr::Var(raw_ident) => {
+            RawExpr::Var(id) => {
                 let de_bruijn_idx = self
                     .idents
                     .iter()
                     .rev()
-                    .position(|i| &raw_ident == i)
-                    .ok_or_else(|| ParseError::UnboundIdentifier {
-                        ident: raw_ident.clone(),
-                    })?;
+                    .position(|i| &id == i)
+                    .ok_or(ParseError::UnboundIdentifier { ident: id })?;
                 Ok(Expr::Var(de_bruijn_idx))
             }
         }

@@ -131,7 +131,7 @@ impl PartialEq<Error> for ErrorExpectation {
             (
                 UnboundVar { ident: ident1 },
                 Error::ParseError(ParseError::UnboundIdentifier { ident: ident2 }),
-            ) => ident1.as_str() == ident2.as_str(),
+            ) => ident1.as_str() == ident2.name(),
             (
                 UnexpectedToken { tok: tok1 },
                 Error::ParseError(ParseError::UnexpectedToken {

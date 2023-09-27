@@ -1,4 +1,4 @@
-use crate::{ast::RawIdent, parser::Token, typ::Type};
+use crate::{interner, parser::Token, typ::Type};
 use lalrpop_util;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -22,7 +22,7 @@ pub enum ParseError {
         expected: Vec<String>,
     },
     UnboundIdentifier {
-        ident: RawIdent,
+        ident: interner::Id,
     },
 }
 

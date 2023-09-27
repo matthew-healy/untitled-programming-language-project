@@ -8,6 +8,7 @@ use typ::Type;
 pub mod ast;
 mod env;
 pub mod error;
+mod interner;
 mod scopes;
 pub mod typ;
 pub mod values;
