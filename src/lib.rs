@@ -28,18 +28,15 @@ pub fn parse(input: &str) -> Result<Box<RawExpr>, Error> {
 }
 
 pub fn check_types(input: &str) -> Result<Type, Error> {
-    let mut type_checker = typ::check::er();
-
     let expr = parse_and_scope_check(input)?;
-    let typ = type_checker.infer(&expr)?;
+    let typ = typ::infer(&expr)?;
     Ok(typ)
 }
 
 pub fn evaluate(input: &str) -> Result<values::Val, error::Error> {
     let expr = parse_and_scope_check(input)?;
 
-    let mut type_checker = typ::check::er();
-    let _ = type_checker.infer(&expr)?;
+    let _ = typ::infer(&expr)?;
 
     let compiler = vm::Compiler::new();
     let code = compiler.compile(&expr);

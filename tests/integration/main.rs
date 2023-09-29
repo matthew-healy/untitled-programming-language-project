@@ -6,8 +6,8 @@ use std::{
 };
 use test_generator::test_resources;
 use untitled_programming_language_project::{
-    error::{Error, EvaluationError, ParseError, Tok, TypeError},
-    evaluate,
+    error::{Error, EvaluationError, ParseError, Tok},
+    evaluate, typ,
     values::Val,
 };
 
@@ -119,6 +119,8 @@ enum ErrorExpectation {
     InvalidToken { tok: String },
     #[serde(rename = "Type.mismatch")]
     TypeMismatch { got: String, expected: String },
+    #[serde(rename = "Type.invalid_application")]
+    TypeInvalidApplication { applied_type: String },
     #[serde(rename = "Evaluation.division_by_zero")]
     DivisionByZero,
 }
@@ -155,11 +157,15 @@ impl PartialEq<Error> for ErrorExpectation {
                     got: got1,
                     expected: expected1,
                 },
-                Error::TypeError(TypeError::Mismatch {
+                Error::TypeError(typ::Error::Mismatch {
                     got: got2,
                     expected: expected2,
                 }),
             ) => got1.as_str() == got2.to_string() && expected1.as_str() == expected2.to_string(),
+            (
+                TypeInvalidApplication { applied_type },
+                Error::TypeError(typ::Error::InvalidApplication(typ)),
+            ) => applied_type.as_str() == typ.to_string(),
             (DivisionByZero, Error::EvaluationError(EvaluationError::DivisionByZero)) => true,
             _ => false,
         }

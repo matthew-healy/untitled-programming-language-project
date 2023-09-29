@@ -1,0 +1,5 @@
+-- category = 'value'
+--
+-- [metadata]
+-- type = 'Unit'
+let f = |x: Num| |x: Unit| (x : Unit) in f 1 ()

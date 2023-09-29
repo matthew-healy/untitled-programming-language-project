@@ -1,10 +1,10 @@
-use crate::{interner, parser::Token, typ::Type};
+use crate::{interner, parser::Token, typ};
 use lalrpop_util;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Error {
     ParseError(ParseError),
-    TypeError(TypeError),
+    TypeError(typ::Error),
     EvaluationError(EvaluationError),
 }
 
@@ -73,20 +73,6 @@ impl Error {
 impl From<ParseError> for Error {
     fn from(e: ParseError) -> Self {
         Error::ParseError(e)
-    }
-}
-
-// Type Errors
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum TypeError {
-    Mismatch { got: Type, expected: Type },
-    BadApplication,
-}
-
-impl From<TypeError> for Error {
-    fn from(e: TypeError) -> Self {
-        Error::TypeError(e)
     }
 }
 

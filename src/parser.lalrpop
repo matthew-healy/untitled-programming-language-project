@@ -96,9 +96,9 @@ Type: Type = {
 }
 
 PrimType: Type = {
-    "Bool" => Type::Bool,
-    "Num" => Type::Num,
-    "Unit" => Type::Unit,
+    "Bool" => Type::bool(),
+    "Num" => Type::num(),
+    "Unit" => Type::unit(),
     "(" <Type> ")" => <>,
 };
 

@@ -1,9 +1,8 @@
 -- category = "error"
 --
 -- [metadata]
--- error = "Type.mismatch"
+-- error = "Type.invalid_application"
 --
 -- [metadata.expectation]
--- expected = "?0 -> ?1"
--- got = "Num"
+-- applied_type = "Num"
 let a = 1 in a 5
