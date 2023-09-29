@@ -61,16 +61,16 @@ impl Compiler {
                 }
                 self.code.push(Op::PushRetAddr(code));
             }
-            Expr::Lambda(_, body) => {
+            Expr::Lambda(_, _, body) => {
                 let closure_code = match body.as_ref() {
                     // If the lambda body is another lambda, then we treat the
                     // whole thing as a single multi-arg lambda. This avoids the
                     // creation of pointless nested `Op::Closure`s by just
                     // grabbing all the arguments we need at once.
-                    Expr::Lambda(_, body) => {
+                    Expr::Lambda(_, _, body) => {
                         let mut grabs = 2;
                         let mut body = body.clone();
-                        while let Expr::Lambda(_, nxt_body) = *body {
+                        while let Expr::Lambda(_, _, nxt_body) = *body {
                             grabs += 1;
                             body = nxt_body
                         }
@@ -88,13 +88,13 @@ impl Compiler {
                 };
                 self.code.push(Op::Closure(closure_code))
             }
-            Expr::Let(false, binding, body) => {
+            Expr::Let(false, _, binding, body) => {
                 self.code.push(Op::EndLet());
                 self.push(body);
                 self.code.push(Op::Grab());
                 self.push(binding);
             }
-            Expr::Let(true, binding, body) => {
+            Expr::Let(true, _, binding, body) => {
                 self.code.push(Op::EndLet());
                 self.push(body);
                 self.code.push(Op::Update());
@@ -113,7 +113,7 @@ impl Compiler {
                 self.push(r);
                 self.push(l);
             }
-            Expr::Var(i) => {
+            Expr::Var(_, i) => {
                 self.code.push(Op::Access(*i));
             }
         }
@@ -127,16 +127,16 @@ impl Compiler {
                     self.push(a);
                 }
             }
-            Expr::Lambda(_, a) => {
+            Expr::Lambda(_, _, a) => {
                 self.push_tail(a);
                 self.code.push(Op::Grab());
             }
-            Expr::Let(false, a, b) => {
+            Expr::Let(false, _, a, b) => {
                 self.push_tail(b);
                 self.code.push(Op::Grab());
                 self.push(a);
             }
-            Expr::Let(true, a, b) => {
+            Expr::Let(true, _, a, b) => {
                 self.push_tail(b);
                 self.code.push(Op::Update());
                 self.push(a);

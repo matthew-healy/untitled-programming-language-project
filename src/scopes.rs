@@ -31,19 +31,19 @@ impl ScopeChecker {
                 self.idents.push(id);
                 let body = Box::new(self.check(*body)?);
                 self.idents.pop();
-                Ok(Expr::Lambda(ty, body))
+                Ok(Expr::Lambda(id, ty, body))
             }
             RawExpr::Let(false, ident, binding, body) => {
                 let binding = Box::new(self.check(*binding)?);
                 self.idents.push(ident);
                 let body = Box::new(self.check(*body)?);
-                Ok(Expr::Let(false, binding, body))
+                Ok(Expr::Let(false, ident, binding, body))
             }
             RawExpr::Let(true, ident, binding, body) => {
                 self.idents.push(ident);
                 let binding = Box::new(self.check(*binding)?);
                 let body = Box::new(self.check(*body)?);
-                Ok(Expr::Let(true, binding, body))
+                Ok(Expr::Let(true, ident, binding, body))
             }
             RawExpr::Literal(v) => Ok(Expr::Literal(v)),
             RawExpr::IfThenElse(cond, thn, els) => {
@@ -64,7 +64,7 @@ impl ScopeChecker {
                     .rev()
                     .position(|i| &id == i)
                     .ok_or(ParseError::UnboundIdentifier { ident: id })?;
-                Ok(Expr::Var(de_bruijn_idx))
+                Ok(Expr::Var(id, de_bruijn_idx))
             }
         }
     }

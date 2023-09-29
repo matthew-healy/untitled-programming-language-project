@@ -60,11 +60,11 @@ impl Debug for RawExpr {
 pub enum Expr {
     Ascribed(Box<Expr>, Type),
     App(Box<Expr>, Vec<Expr>),
-    Lambda(Type, Box<Expr>),
-    Let(bool, Box<Expr>, Box<Expr>),
+    Lambda(interner::Id, Type, Box<Expr>),
+    Let(bool, interner::Id, Box<Expr>, Box<Expr>),
     Literal(Val),
     IfThenElse(Box<Expr>, Box<Expr>, Box<Expr>),
-    Var(usize),
+    Var(interner::Id, usize),
     Op(Box<Expr>, BinaryOp, Box<Expr>),
 }
 
@@ -73,15 +73,16 @@ impl Debug for Expr {
         match self {
             Expr::Ascribed(e, t) => write!(f, "{e:?} : {t:?}"),
             Expr::App(fnc, a) => write!(f, "{fnc:?} {a:?}"),
-            Expr::Lambda(ty, body) => write!(f, "|{ty:?}| {body:?}"),
-            Expr::Let(rec, bnd, body) => {
+            Expr::Lambda(id, ty, body) => write!(f, "|{:?}: {ty:?}| {body:?}", id.name()),
+            Expr::Let(rec, id, bnd, body) => {
                 let rec = if *rec { "rec " } else { "" };
-                write!(f, "let {rec}{bnd:?} in {body:?}")
+                let id = id.name();
+                write!(f, "let {rec}{id} {bnd:?} in {body:?}")
             }
             Expr::Literal(v) => write!(f, "{v}"),
             Expr::IfThenElse(cond, thn, els) => write!(f, "if {cond:?} then {thn:?} else {els:?}"),
             Expr::Op(l, op, r) => write!(f, "({l:?} {op:?} {r:?})"),
-            Expr::Var(i) => write!(f, "e[{i:?}]"),
+            Expr::Var(id, _) => write!(f, "{}", id.name()),
         }
     }
 }

@@ -59,18 +59,18 @@ impl TypeChecker {
 
                 resolved_ty.applied_to_args(args.len())
             }
-            Lambda(ty, body) => {
+            Lambda(_, ty, body) => {
                 self.typing_env.bind(ty.clone());
                 let ret_ty = self.infer(body)?;
                 self.typing_env.unbind();
                 Ok(Type::Arrow(Box::new(ty.clone()), Box::new(ret_ty)))
             }
-            Let(false, binding, body) => {
+            Let(false, _, binding, body) => {
                 let binding_ty = self.infer(binding)?;
                 self.typing_env.bind(binding_ty);
                 self.infer(body)
             }
-            Let(true, _, body) => {
+            Let(true, _, _, body) => {
                 let unif_var = self.new_unif_var();
                 self.typing_env.bind(unif_var);
                 self.infer(body)
@@ -115,7 +115,7 @@ impl TypeChecker {
                     }
                 }
             }
-            Var(i) => Ok(self
+            Var(_, i) => Ok(self
                 .typing_env
                 .lookup(*i)
                 .expect("Scope check should happen before typechecking")),
