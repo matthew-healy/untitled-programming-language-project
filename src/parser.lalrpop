@@ -54,12 +54,10 @@ InfixExpr: Box<RawExpr> = {
 }
 
 Applicative: Box<RawExpr> = {
-    <f: Terminal> <args: (Terminal)+> => {
-        Box::new(RawExpr::App(
-            f,
-            args.into_iter().map(|a| *a).collect()
-        ))
-    },
+    <f: Terminal> <args: (Terminal)+> => RawExpr::make_app(
+        f,
+        args.into_iter().map(|a| *a).collect()
+    ),
     Terminal,
 }
 

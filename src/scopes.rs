@@ -19,13 +19,10 @@ impl ScopeChecker {
     pub fn check(&mut self, raw_expr: RawExpr) -> Result<Expr, Error> {
         match raw_expr {
             RawExpr::Ascribed(e, t) => Ok(Expr::Ascribed(Box::new(self.check(*e)?), t)),
-            RawExpr::App(fnc, args) => {
+            RawExpr::App(fnc, arg) => {
                 let fnc = self.check(*fnc)?;
-                let args = args
-                    .into_iter()
-                    .map(|a| self.check(a))
-                    .collect::<Result<_, _>>()?;
-                Ok(Expr::App(Box::new(fnc), args))
+                let arg = self.check(*arg)?;
+                Ok(Expr::App(Box::new(fnc), Box::new(arg)))
             }
             RawExpr::Lambda(id, ty, body) => {
                 self.idents.push(id);

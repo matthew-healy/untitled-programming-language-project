@@ -52,11 +52,20 @@ impl Compiler {
     fn push(&mut self, e: &Expr) {
         match e {
             Expr::Ascribed(e, _t) => self.push(e),
-            Expr::App(fnc, args) => {
+            Expr::App(fnc, arg) => {
                 let code = std::mem::take(&mut self.code);
                 self.code.push(Op::Apply());
-                self.push(fnc);
-                for a in args {
+                let mut fnc = fnc.clone();
+                // The args passed to the function, in reverse order.
+                let mut args_rev = vec![arg.clone()];
+                // If the function is another app, then we treat the whole thing
+                // as a multi-arg function call.
+                while let Expr::App(nxt_fnc, nxt_arg) = *fnc {
+                    args_rev.push(nxt_arg);
+                    fnc = nxt_fnc;
+                }
+                self.push(&fnc);
+                for a in args_rev.iter().rev() {
                     self.push(a);
                 }
                 self.code.push(Op::PushRetAddr(code));
@@ -121,11 +130,9 @@ impl Compiler {
 
     fn push_tail(&mut self, e: &Expr) {
         match e {
-            Expr::App(f, args) => {
+            Expr::App(f, arg) => {
                 self.push_tail(f);
-                for a in args {
-                    self.push(a);
-                }
+                self.push(arg);
             }
             Expr::Lambda(_, _, a) => {
                 self.push_tail(a);

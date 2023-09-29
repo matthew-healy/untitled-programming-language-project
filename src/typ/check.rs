@@ -35,29 +35,24 @@ impl TypeChecker {
 
         match e {
             Ascribed(e, t) => {
-                println!("{e:?} is ascribed type {t:?}");
                 let e_ty = self.infer(e.as_ref())?;
-                println!("Inferred it to have type {e_ty:?}");
                 self.unify(e_ty, t.clone())
             }
-            App(fnc, args) => {
-                // `fn_ty` is the inferred type of the function itself, based
-                // on its body.
-                // e.g. fn_ty = A_1 -> ... -> A_n
+            App(fnc, arg) => {
                 let fn_ty = self.infer(fnc)?;
-                // `arg_ty` is the inferred type of `fnc` based on the types of
-                // the arguments we can see.
-                // e.g. arg_ty = A_1 -> ... -> A_(n - m) -> UVar
-                let arg_ty = args
-                    .iter()
-                    .rev()
-                    .try_fold(self.new_unif_var(), |acc, nxt| {
-                        let nxt_ty = self.infer(nxt)?;
-                        Ok(Type::Arrow(Box::new(nxt_ty), Box::new(acc)))
-                    })?;
-                let resolved_ty = self.unify(fn_ty, arg_ty)?;
+                let arg_ty = self.infer(arg)?;
 
-                resolved_ty.applied_to_args(args.len())
+                let in_var = self.new_unif_var();
+                let out_var = self.new_unif_var();
+                let fn_ty = self.unify(fn_ty, Type::Arrow(Box::new(in_var), Box::new(out_var)))?;
+
+                match fn_ty {
+                    Type::Arrow(in_ty, out_ty) => {
+                        self.unify(*in_ty, arg_ty)?;
+                        Ok(*out_ty)
+                    }
+                    _ => Err(TypeError::BadApplication),
+                }
             }
             Lambda(_, ty, body) => {
                 self.typing_env.bind(ty.clone());

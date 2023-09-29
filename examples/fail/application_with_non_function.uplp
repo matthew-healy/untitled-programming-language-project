@@ -4,6 +4,6 @@
 -- error = "Type.mismatch"
 --
 -- [metadata.expectation]
--- expected = "Num -> ?0"
+-- expected = "?0 -> ?1"
 -- got = "Num"
 let a = 1 in a 5
