@@ -117,12 +117,12 @@ impl<'a> InnerInterner<'a> {
 }
 
 #[cfg(test)]
-mod test {
+mod axioms {
     use super::*;
     use quickcheck::quickcheck;
 
     quickcheck! {
-        fn intern_then_lookup(s: String) -> bool {
+        fn intern_then_lookup_returns_interned_string(s: String) -> bool {
             let interner = Interner::new();
             let id = interner.intern(&s);
             let lookup_result = interner.lookup(id);
@@ -131,7 +131,7 @@ mod test {
     }
 
     quickcheck! {
-        fn interning_same_string_twice(s: String) -> bool {
+        fn interning_same_string_twice_returns_same_id(s: String) -> bool {
             let interner = Interner::new();
             let id1 = interner.intern(&s);
             let id2 = interner.intern(&s);
@@ -154,7 +154,7 @@ mod test {
     }
 
     quickcheck! {
-        fn interning_different_strings(s: NonEqualStrings) -> bool {
+        fn interning_different_strings_returns_different_ids(s: NonEqualStrings) -> bool {
             let interner = Interner::new();
             let id1 = interner.intern(s.0);
             let id2 = interner.intern(s.1);
@@ -163,7 +163,7 @@ mod test {
     }
 
     quickcheck! {
-        fn looking_up_twice_returns_same_ref(s: String) -> bool {
+        fn looking_up_same_id_twice_returns_same_ref(s: String) -> bool {
             use std::ptr;
 
             let interner = Interner::new();

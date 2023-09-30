@@ -45,7 +45,7 @@ impl<T: PartialEq> PartialEq for Stack<T> {
 }
 
 #[cfg(test)]
-mod stack_axioms {
+mod axioms {
     use quickcheck::{quickcheck, Arbitrary};
 
     impl Arbitrary for Stack<usize> {
