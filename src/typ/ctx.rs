@@ -76,9 +76,11 @@ impl Ctx {
                     },
                 )
             })
-            .ok_or(Error::Internal(format!(
-                "split_at called with non-existent element {element:?}"
-            )))
+            .ok_or_else(|| {
+                Error::Internal(format!(
+                    "split_at called with non-existent element {element:?}"
+                ))
+            })
     }
 
     pub(crate) fn insert_in_place(
@@ -89,14 +91,14 @@ impl Ctx {
         self.first_appearance_from_back(&element)
             .map(|i| {
                 let mut elements = self.elements;
-                let _ = elements
-                    .splice(i..=i, replacements.into_iter().cloned())
-                    .count();
+                let _ = elements.splice(i..=i, replacements.iter().cloned()).count();
                 Ctx { elements }
             })
-            .ok_or(Error::Internal(format!(
-                "insert_in_place called with non-existent element: {element:?}"
-            )))
+            .ok_or_else(|| {
+                Error::Internal(format!(
+                    "insert_in_place called with non-existent element: {element:?}"
+                ))
+            })
     }
 
     pub(crate) fn drop(self, element: &Element) -> Result<Self, Error> {
@@ -106,9 +108,11 @@ impl Ctx {
                 let _ = elements.split_off(i);
                 Ctx { elements }
             })
-            .ok_or(Error::Internal(format!(
-                "drop called with non-existent element: {element:?}"
-            )))
+            .ok_or_else(|| {
+                Error::Internal(format!(
+                    "drop called with non-existent element: {element:?}"
+                ))
+            })
     }
 
     pub(crate) fn get_solved(&self, alpha: &Existential) -> Option<&Type> {
@@ -119,10 +123,9 @@ impl Ctx {
     }
 
     pub(crate) fn has_existential(&self, alpha: &Existential) -> bool {
-        self.elements.iter().any(|e| match e {
-            Element::Existential(a) if a == alpha => true,
-            _ => false,
-        })
+        self.elements
+            .iter()
+            .any(|e| matches!(e, Element::Existential(a) if a == alpha))
     }
 
     pub(crate) fn get_annotation(&self, x: interner::Id) -> Result<&Type, Error> {

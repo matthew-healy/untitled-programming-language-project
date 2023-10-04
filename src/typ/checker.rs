@@ -47,19 +47,16 @@ pub(crate) fn synthesize_type(state: &mut State, ctx: Ctx, e: &Expr) -> Result<(
 
             // Insert the existential types into the context, as well as `v: inferred_from`.
             let ctx = ctx
-                .add(ctx::Element::Existential(from.clone()))
-                .add(ctx::Element::Existential(to.clone()))
-                .add(ctx::Element::TypedVariable(
-                    id.clone(),
-                    Type::Existential(from.clone()),
-                ));
+                .add(ctx::Element::Existential(from))
+                .add(ctx::Element::Existential(to))
+                .add(ctx::Element::TypedVariable(*id, Type::Existential(from)));
             // Then check that the lambda's body typechecks as `inferred_to` in that context
-            let ctx = check_type(state, ctx, e, &Type::Existential(to.clone()))?;
+            let ctx = check_type(state, ctx, e, &Type::Existential(to))?;
             // if so then it must have type `inferred_from -> inferred_to`
             Ok((
                 Type::Arrow(
-                    Box::new(Type::Existential(from.clone())),
-                    Box::new(Type::Existential(to.clone())),
+                    Box::new(Type::Existential(from)),
+                    Box::new(Type::Existential(to)),
                 ),
                 ctx,
             ))
@@ -73,15 +70,15 @@ pub(crate) fn synthesize_type(state: &mut State, ctx: Ctx, e: &Expr) -> Result<(
                     let to = state.fresh_existential();
 
                     let ctx = ctx.insert_in_place(
-                        ctx::Element::Existential(a.clone()),
+                        ctx::Element::Existential(a),
                         &[
-                            ctx::Element::Existential(to.clone()),
-                            ctx::Element::Existential(from.clone()),
+                            ctx::Element::Existential(to),
+                            ctx::Element::Existential(from),
                             ctx::Element::Solved(
                                 a,
                                 Type::Arrow(
-                                    Box::new(Type::Existential(from.clone())),
-                                    Box::new(Type::Existential(to.clone())),
+                                    Box::new(Type::Existential(from)),
+                                    Box::new(Type::Existential(to)),
                                 ),
                             ),
                         ],
@@ -233,13 +230,13 @@ fn instantiate_l(
                 let ctx = ctx.insert_in_place(
                     ctx::Element::Existential(to_instantiate.to_owned()),
                     &[
-                        ctx::Element::Existential(inferred_to.clone()),
-                        ctx::Element::Existential(inferred_from.clone()),
+                        ctx::Element::Existential(inferred_to),
+                        ctx::Element::Existential(inferred_from),
                         ctx::Element::Solved(
                             to_instantiate.to_owned(),
                             Type::Arrow(
-                                Box::new(Type::Existential(inferred_from.clone())),
-                                Box::new(Type::Existential(inferred_to.clone())),
+                                Box::new(Type::Existential(inferred_from)),
+                                Box::new(Type::Existential(inferred_to)),
                             ),
                         ),
                     ],
@@ -252,11 +249,8 @@ fn instantiate_l(
             Type::Existential(e) => {
                 right.check_type_well_formed(t)?;
                 ctx.insert_in_place(
-                    ctx::Element::Existential(e.clone()),
-                    &[ctx::Element::Solved(
-                        e.clone(),
-                        Type::Existential(to_instantiate.to_owned()),
-                    )],
+                    ctx::Element::Existential(*e),
+                    &[ctx::Element::Solved(*e, Type::Existential(to_instantiate))],
                 )
             }
             Type::Primitive(_) => unreachable!("handled in first branch of if"),
@@ -275,8 +269,8 @@ fn instantiate_r(
 
     if left.check_type_well_formed(t).is_ok() {
         ctx.insert_in_place(
-            ctx::Element::Existential(to_instantiate.into()),
-            &[ctx::Element::Solved(to_instantiate.into(), t.clone())],
+            ctx::Element::Existential(to_instantiate),
+            &[ctx::Element::Solved(to_instantiate, t.clone())],
         )
     } else {
         match t {
@@ -288,13 +282,13 @@ fn instantiate_r(
                 let inferred_to = state.fresh_existential();
 
                 let ctx = ctx
-                    .add(ctx::Element::Existential(inferred_to.clone()))
-                    .add(ctx::Element::Existential(inferred_from.clone()))
+                    .add(ctx::Element::Existential(inferred_to))
+                    .add(ctx::Element::Existential(inferred_from))
                     .add(ctx::Element::Solved(
-                        to_instantiate.into(),
+                        to_instantiate,
                         Type::Arrow(
-                            Box::new(Type::Existential(inferred_from.clone())),
-                            Box::new(Type::Existential(inferred_to.clone())),
+                            Box::new(Type::Existential(inferred_from)),
+                            Box::new(Type::Existential(inferred_to)),
                         ),
                     ));
 
@@ -304,10 +298,7 @@ fn instantiate_r(
             }
             Type::Existential(e) => {
                 right.check_type_well_formed(t)?;
-                Ok(ctx.add(ctx::Element::Solved(
-                    e.clone(),
-                    Type::Existential(to_instantiate.into()),
-                )))
+                Ok(ctx.add(ctx::Element::Solved(*e, Type::Existential(to_instantiate))))
             }
             Type::Primitive(_) => unreachable!("handled in first branch of if"),
         }
@@ -323,7 +314,7 @@ fn check_literal_type(ctx: Ctx, l: &Val, p: &Primitive) -> Result<Ctx, Error> {
         (Val::Closure { .. } | Val::Dummy, _) => unreachable!("Runtime-only"),
         (l, p) => Err(Error::Mismatch {
             got: l.typ(),
-            expected: Type::Primitive(p.clone()),
+            expected: Type::Primitive(*p),
         }),
     }
 }
@@ -336,7 +327,7 @@ impl Type {
             Type::Arrow(from, to) => {
                 Type::Arrow(Box::new(from.apply(ctx)), Box::new(to.apply(ctx)))
             }
-            Type::Existential(a) => match ctx.get_solved(&a) {
+            Type::Existential(a) => match ctx.get_solved(a) {
                 Some(t) => t.clone().apply(ctx),
                 None => self.clone(),
             },
