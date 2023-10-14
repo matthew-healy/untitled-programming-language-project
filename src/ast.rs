@@ -6,7 +6,7 @@ use crate::{interner, typ::Type, values::Val};
 pub enum RawExpr {
     Ascribed(Box<RawExpr>, Type),
     App(Box<RawExpr>, Box<RawExpr>),
-    Lambda(interner::Id, Type, Box<RawExpr>),
+    Lambda(interner::Id, Option<Type>, Box<RawExpr>),
     Let(bool, interner::Id, Box<RawExpr>, Box<RawExpr>),
     Literal(Val),
     IfThenElse(Box<RawExpr>, Box<RawExpr>, Box<RawExpr>),
@@ -20,7 +20,7 @@ impl RawExpr {
             .fold(fnc, |f, arg| Box::new(Self::App(f, Box::new(arg))))
     }
 
-    pub fn make_lambda(args: Vec<(RawIdent, Type)>, body: Box<RawExpr>) -> Box<Self> {
+    pub fn make_lambda(args: Vec<(RawIdent, Option<Type>)>, body: Box<RawExpr>) -> Box<Self> {
         args.into_iter()
             .rev()
             .map(|(r, ty)| (interner::Id::new(r.0), ty))
@@ -65,7 +65,7 @@ impl Debug for RawExpr {
 pub enum Expr {
     Ascribed(Box<Expr>, Type),
     App(Box<Expr>, Box<Expr>),
-    Lambda(interner::Id, Type, Box<Expr>),
+    Lambda(interner::Id, Option<Type>, Box<Expr>),
     Let(bool, interner::Id, Box<Expr>, Box<Expr>),
     Literal(Val),
     IfThenElse(Box<Expr>, Box<Expr>, Box<Expr>),

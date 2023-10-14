@@ -1,0 +1,7 @@
+-- category = "value"
+--
+-- [metadata]
+-- type = "Num"
+-- value = 20
+let double = |x| x * 2 in
+double 10

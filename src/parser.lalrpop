@@ -18,8 +18,12 @@ Expr: Box<RawExpr> = {
     "if" <Expr> "then" <Expr> "else" <Expr> => Box::new(RawExpr::IfThenElse(<>)),
 }
 
-FnArg: (RawIdent, Type) = {
-    <id: Ident> ":" <ty: Type> => (id, ty)
+Annotation: Type = {
+    ":" <ty: Type> => ty
+}
+
+FnArg: (RawIdent, Option<Type>) = {
+    <id: Ident> <a: Annotation?> => (id, a)
 }
 
 CommaSeparated<T>: Vec<T> = {
