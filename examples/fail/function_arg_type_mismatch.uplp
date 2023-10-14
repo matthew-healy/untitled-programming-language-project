@@ -1,0 +1,10 @@
+-- category = "error"
+--
+-- [metadata]
+-- error = "Type.mismatch"
+--
+-- [metadata.expectation]
+-- expected = "Num"
+-- got = "Unit"
+let f = |x: Num| true in
+f ()

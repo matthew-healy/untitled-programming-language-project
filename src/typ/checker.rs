@@ -39,25 +39,26 @@ pub(crate) fn synthesize_type(state: &mut State, ctx: Ctx, e: &Expr) -> Result<(
             let ctx = check_type(state, ctx, e, t)?;
             Ok((t.clone(), ctx))
         }
-        // TODO: lambdas don't need types anymore. (though we likely want to
-        // optionally include them & use them if we get them).
-        Expr::Lambda(id, _, e) => {
-            let from = state.fresh_existential();
+        Expr::Lambda(id, t, e) => {
+            let (from_ty, ctx) = match t {
+                Some(t) => (t.clone(), ctx),
+                None => {
+                    let from = state.fresh_existential();
+                    let ctx = ctx.add(ctx::Element::Existential(from));
+                    (Type::Existential(from), ctx)
+                }
+            };
             let to = state.fresh_existential();
 
             // Insert the existential types into the context, as well as `v: inferred_from`.
             let ctx = ctx
-                .add(ctx::Element::Existential(from))
                 .add(ctx::Element::Existential(to))
-                .add(ctx::Element::TypedVariable(*id, Type::Existential(from)));
+                .add(ctx::Element::TypedVariable(*id, from_ty.clone()));
             // Then check that the lambda's body typechecks as `inferred_to` in that context
             let ctx = check_type(state, ctx, e, &Type::Existential(to))?;
             // if so then it must have type `inferred_from -> inferred_to`
             Ok((
-                Type::Arrow(
-                    Box::new(Type::Existential(from)),
-                    Box::new(Type::Existential(to)),
-                ),
+                Type::Arrow(Box::new(from_ty), Box::new(Type::Existential(to))),
                 ctx,
             ))
         }
@@ -121,7 +122,7 @@ pub(crate) fn synthesize_type(state: &mut State, ctx: Ctx, e: &Expr) -> Result<(
         }
         Expr::IfThenElse(cond, thn, els) => {
             let (cond_type, ctx) = synthesize_type(state, ctx, cond)?;
-            let ctx = subtype(state, ctx, &cond_type, &Type::bool())?;
+            let ctx = covariant_subtype(state, ctx, &cond_type, &Type::bool())?;
             let (thn_ty, ctx) = synthesize_type(state, ctx, thn)?;
             let ctx = check_type(state, ctx, els, &thn_ty)?;
             Ok((thn_ty, ctx))
@@ -135,17 +136,17 @@ pub(crate) fn synthesize_type(state: &mut State, ctx: Ctx, e: &Expr) -> Result<(
                 BinaryOp::And => {
                     let bl = Type::bool();
                     let l_ty = l_ty.apply(&ctx);
-                    let ctx = subtype(state, ctx, &l_ty, &bl)?;
+                    let ctx = covariant_subtype(state, ctx, &l_ty, &bl)?;
                     let r_ty = r_ty.apply(&ctx);
-                    let ctx = subtype(state, ctx, &r_ty, &bl)?;
+                    let ctx = covariant_subtype(state, ctx, &r_ty, &bl)?;
                     Ok((bl, ctx))
                 }
                 BinaryOp::Mul | BinaryOp::Div | BinaryOp::Add | BinaryOp::Sub => {
                     let num = Type::num();
                     let l_ty = l_ty.apply(&ctx);
-                    let ctx = subtype(state, ctx, &l_ty, &num)?;
+                    let ctx = covariant_subtype(state, ctx, &l_ty, &num)?;
                     let r_ty = r_ty.apply(&ctx);
-                    let ctx = subtype(state, ctx, &r_ty, &num)?;
+                    let ctx = covariant_subtype(state, ctx, &r_ty, &num)?;
                     Ok((num, ctx))
                 }
             }
@@ -160,7 +161,13 @@ fn check_type(state: &mut State, ctx: Ctx, e: &Expr, t: &Type) -> Result<Ctx, Er
 
     match (e, t) {
         (Expr::Literal(l), Type::Primitive(p)) => check_literal_type(ctx, l, p),
-        (Expr::Lambda(id, _, e), Type::Arrow(from_ty, to_ty)) => {
+        (Expr::Lambda(id, arg_annot, e), Type::Arrow(from_ty, to_ty)) => {
+            let ctx = if let Some(t) = arg_annot {
+                // subtype(state, ctx, from_ty, t)?
+                contravariant_subtype(state, ctx, from_ty, t)?
+            } else {
+                ctx
+            };
             // Insert the newly known type - i.e. `v: from_ty` - into the context
             let typed_var = ctx::Element::TypedVariable(*id, *from_ty.clone());
             let ctx = ctx.add(typed_var.clone());
@@ -174,14 +181,33 @@ fn check_type(state: &mut State, ctx: Ctx, e: &Expr, t: &Type) -> Result<Ctx, Er
             let (inferred_t, ctx) = synthesize_type(state, ctx, e)?;
             let a = inferred_t.apply(&ctx);
             let t = t.clone().apply(&ctx);
-            subtype(state, ctx, &a, &t)
+            covariant_subtype(state, ctx, &a, &t)
         }
     }
 }
 
+/// The usual subtyping algorithm, with error messages showing the types in
+/// covariant positions.
+#[inline(always)]
+fn covariant_subtype(state: &mut State, ctx: Ctx, a: &Type, b: &Type) -> Result<Ctx, Error> {
+    subtype(state, ctx, a, b, Variance::Covariant)
+}
+
+/// The usual subtyping algorithm, with error messages showing the types in
+/// contravariant positions.
+#[inline(always)]
+fn contravariant_subtype(state: &mut State, ctx: Ctx, a: &Type, b: &Type) -> Result<Ctx, Error> {
+    subtype(state, ctx, a, b, Variance::Contravariant)
+}
+
+enum Variance {
+    Covariant,
+    Contravariant,
+}
+
 /// Ensures that `a` is a subtype of `b`. Returns an updated `Ctx` if it is, and
 /// an `Error` otherwise.
-fn subtype(state: &mut State, ctx: Ctx, a: &Type, b: &Type) -> Result<Ctx, Error> {
+fn subtype(state: &mut State, ctx: Ctx, a: &Type, b: &Type, v: Variance) -> Result<Ctx, Error> {
     ctx.check_type_well_formed(a)?;
     ctx.check_type_well_formed(b)?;
 
@@ -189,18 +215,24 @@ fn subtype(state: &mut State, ctx: Ctx, a: &Type, b: &Type) -> Result<Ctx, Error
         (Type::Primitive(p1), Type::Primitive(p2)) if p1 == p2 => Ok(ctx),
         (Type::Existential(e1), Type::Existential(e2)) if e1 == e2 => Ok(ctx),
         (Type::Arrow(from1, to1), Type::Arrow(from2, to2)) => {
-            let ctx = subtype(state, ctx, from2, from1)?;
+            let ctx = contravariant_subtype(state, ctx, from2, from1)?;
             let to1 = to1.apply(&ctx);
             let to2 = to2.apply(&ctx);
-            let r = subtype(state, ctx, &to1, &to2)?;
+            let r = covariant_subtype(state, ctx, &to1, &to2)?;
             Ok(r)
         }
         (Type::Existential(to_instantiate), _) => instantiate_l(state, ctx, *to_instantiate, b),
         (_, Type::Existential(to_instantiate)) => instantiate_r(state, ctx, a, *to_instantiate),
-        (_, _) => Err(Error::Mismatch {
-            got: a.clone(),
-            expected: b.clone(),
-        }),
+        (_, _) => match v {
+            Variance::Covariant => Err(Error::Mismatch {
+                got: a.clone(),
+                expected: b.clone(),
+            }),
+            Variance::Contravariant => Err(Error::Mismatch {
+                got: b.clone(),
+                expected: a.clone(),
+            }),
+        },
     }
 }
 
