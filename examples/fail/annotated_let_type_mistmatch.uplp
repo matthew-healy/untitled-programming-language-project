@@ -1,0 +1,9 @@
+-- category = "error"
+--
+-- [metadata]
+-- error = "Type.mismatch"
+--
+-- [metadata.expectation]
+-- expected = "Unit"
+-- got = "Num"
+let x: Unit = 105 in x
