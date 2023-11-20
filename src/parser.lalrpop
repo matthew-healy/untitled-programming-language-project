@@ -12,8 +12,8 @@ pub Uplp = Expr;
 Expr: Box<RawExpr> = {
     InfixExpr,
     <InfixExpr> ":" <Type> => Box::new(RawExpr::Ascribed(<>)),
-    "let" <rec: "rec"?> <ident: Ident> "=" <bnd: Expr> "in" <body: Expr> =>
-        RawExpr::make_let(rec.is_some(), ident, bnd, body),
+    "let" <rec: "rec"?> <ident: Ident> <ann: Annotation?> "=" <bnd: Expr> "in" <body: Expr> =>
+        RawExpr::make_let(rec.is_some(), ident, ann, bnd, body),
     "|" <CommaSeparated<FnArg>> "|" <Expr> => RawExpr::make_lambda(<>),
     "if" <Expr> "then" <Expr> "else" <Expr> => Box::new(RawExpr::IfThenElse(<>)),
 }

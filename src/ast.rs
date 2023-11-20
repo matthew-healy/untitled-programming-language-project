@@ -30,9 +30,14 @@ impl RawExpr {
     pub fn make_let(
         rec: bool,
         ident: RawIdent,
+        ann: Option<Type>,
         binding: Box<RawExpr>,
         body: Box<RawExpr>,
     ) -> Box<Self> {
+        let binding = match ann {
+            Some(ann) => Box::new(RawExpr::Ascribed(binding, ann)),
+            None => binding,
+        };
         Box::new(Self::Let(rec, interner::Id::new(ident.0), binding, body))
     }
 

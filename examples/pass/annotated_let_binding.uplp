@@ -1,0 +1,9 @@
+-- category = "value"
+--
+-- [metadata]
+-- type = "Num"
+-- value = 10
+let a: Num = 1 in
+let b: Num = 10 in
+let c: Bool = false in
+if c then a else b
