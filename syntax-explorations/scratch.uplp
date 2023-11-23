@@ -1,0 +1,39 @@
+# FizzBuzz 1
+
+```uplp
+def main: () {
+  let answer = match Number.random() {
+	_.mod(3) && _.mod(5) == 0: "FizzBuzz",
+    _.mod(3) == 0: "Fizz",
+	_.mod(5) == 0: "Buzz",
+	x: x.as(),                              
+  };
+
+  print(answer)  
+}
+```
+
+```uplp
+behaviour Into(From, To) {
+  def (f: From).as(): To
+}
+```
+
+```
+Into(Number, String) {
+  def (n: Number).as(): String {
+    -- actual conversion details
+  }
+}
+```
+
+## FizzBuzz 2
+
+```
+def main: () {
+  let number = Number.random();
+  let f = if number.mod(3) == 0 then "Fizz" else "";
+  let fb = f + (if number.mod(5) == 0 then "Buzz" else "");
+  if fb.is_empty() then number.as() else fb
+}
+```
